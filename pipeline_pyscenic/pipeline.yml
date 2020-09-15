@@ -1,0 +1,31 @@
+# YAML file for pyscenic_pipeline.py
+
+cluster:
+    queue: batchq
+
+filtering:
+    threads: 2
+    input_format: csv     # either h5ad or csv
+    UMI_counts: 3
+    min_percent: 0.01
+    other_options: # --downsample --cell_number 200000     # only use for h5ad file format
+
+grn:
+    threads: 20   # 18
+    tfs_list: resources.dir/lambert2018.txt
+    other_options: -t    # add -t if csv file is genes (rows) x cells (columns)
+
+ctx:
+    threads: 20   #10
+    annotations: resources.dir/motifs-v9-nr.hgnc-m0.001-o0.0.tbl
+    # the name of the file that contains the motif annotations to use
+    database_fname:
+        - resources.dir/hg38__refseq-r80__10kb_up_and_down_tss.mc9nr.feather
+        - resources.dir/hg38__refseq-r80__500bp_up_and_100bp_down_tss.mc9nr.feather    # this can be left empty
+    # the name(s) of the regulatory feature databases; two file formats are supported: feather or db (legacy)
+    other_options: -t     # --mask_dropouts, add -t if csv file is genes (rows) x cells (columns)
+
+aucell:
+    threads: 20    #18
+    auc_threshold: 0.05
+    other_options: -t     # add -t if csv file is genes (rows) x cells (columns)
