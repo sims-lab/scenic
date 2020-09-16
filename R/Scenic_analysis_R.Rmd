@@ -26,7 +26,7 @@ params:
   celltype_zscore_filter_threshold: 3 # Zscore filter threshold for celltype specific scores for heatmap or "None"
   stim_zscore_filter_threshold: 1 # Zscore filter threshold for  condition specific scores for heatmap or "None"
   celltype_stim_zscore_filter_threshold: 4 # Zscore filter threshold for  celltype + condition specific  scores for heatmap or "None"
-  binary_auc_mtx: "./binary_matrix.csv" # Binary Auc scores for each cell or "None"
+  binary_mtx: "./binary_matrix.csv" # Binary Auc scores for each cell or "None"
   annotation_celltype: "data.dir/celltype_annotations.csv" # csv file with cellid & celltype annotations for each cell or "None"
   annotation_stim: "data.dir/thirst2_condition_annotations.csv" # csv file with cellid & stim annotation  for each cell or "None"
   annotation_celltype_stim: "data.dir/broad_celltype_stim_annotations.csv" #csv file with cellid & celltype_stim annotation for each cell or "None"
