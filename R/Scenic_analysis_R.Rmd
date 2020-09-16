@@ -37,7 +37,7 @@ params:
   species: "human" # fly ;human ,mouse or None
   regulon_genes: "./regulons_lucy.csv" #regulon files generatated from Pyscenic pipeline or "None"
   exp_matrix: "data.dir/test.csv" # filtered-raw-expression.csv exp matrix generated in step1 of pipeline for background for pathway analysis or "None"
-  GO_ont_option: "BP" # "BP", "MF" , "CC" or "ALL" for all three. Default is "MF" in ClusterProfiler
+  go_ont_option: "BP" # "BP", "MF" , "CC" or "ALL" for all three. Default is "MF" in ClusterProfiler
   wilcoxon_celltype_top: "wilcoxon_celltype_top10.csv" #or "None"
   wilcoxon_condition_top: "wilcoxon_condition_reference_top10.csv" # or "None"
   ks_celltype_top: "ks_celltype_top10.csv" # or "None"
