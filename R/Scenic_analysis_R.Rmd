@@ -40,12 +40,12 @@ params:
   GO_ont_option: "BP" # "BP", "MF" , "CC" or "ALL" for all three. Default is "MF" in ClusterProfiler
   wilcoxon_celltype_top: "wilcoxon_celltype_top10.csv" #or "None"
   wilcoxon_condition_top: "wilcoxon_condition_reference_top10.csv" # or "None"
-  KS_celltype_top: "ks_celltype_top10.csv" # or "None"
-  KS_condition_top: "ks_condition_top10.csv" # or "None"
-  pvalueCutoff: 0.05 # Pathway enrichment cutoffs
-  qvalueCutoff: 0.05 # Pathway enrichment cutoffs
-  MaxGSSize: 1000 # Pathway enrichment maximum gneset size
-  Msigdb_geneset: "C2" # geneset category for MSigDB, can be C1: positional gene sets ,C2: curated gene sets,C3: motif gene sets,C4: computational gene sets, C5: GO gene sets,C6: oncogenic signatures,C7: immunologic signatures,H: hallmark gene sets
+  ks_celltype_top: "ks_celltype_top10.csv" # or "None"
+  ks_condition_top: "ks_condition_top10.csv" # or "None"
+  pvaluecutoff: 0.05 # Pathway enrichment cutoffs
+  qvaluecutoff: 0.05 # Pathway enrichment cutoffs
+  maxGSSize: 1000 # Pathway enrichment maximum gneset size
+  msigdb_geneset: "C2" # geneset category for MSigDB, can be C1: positional gene sets ,C2: curated gene sets,C3: motif gene sets,C4: computational gene sets, C5: GO gene sets,C6: oncogenic signatures,C7: immunologic signatures,H: hallmark gene sets
   
   
 ---
@@ -177,7 +177,7 @@ zscore_heatmap <- function(zscores_df,annotation_type=params$celltype ,filter_th
 
 }
 
-binary_celltype_perc_heatmap <- function(cellInfo_f=params$annotation_celltype, binary_mtx_f=params$binary_auc_mtx, minPerc=0.85, annotation_type ="celltype",plot_height=7,plot_width=10, units="in"){
+binary_celltype_perc_heatmap <- function(cellInfo_f=params$annotation_celltype, binary_mtx_f=params$binary_mtx, minPerc=0.85, annotation_type ="celltype",plot_height=7,plot_width=10, units="in"){
 if(cellInfo_f!= "None" & binary_mtx_f != "None"){
   cellInfo <- read.csv(cellInfo_f)
   
@@ -212,7 +212,7 @@ if(cellInfo_f!= "None" & binary_mtx_f != "None"){
 
 }
 
-binary_auc_heatmap <- function(binary_mtx_f= params$binary_auc_mtx, annotation_col_f=params$binary_heatmap_cell_annotations,plot_height=9, plot_width=12){
+binary_auc_heatmap <- function(binary_mtx_f= params$binary_mtx, annotation_col_f=params$binary_heatmap_cell_annotations,plot_height=9, plot_width=12){
   if(annotation_col_f !="None" & binary_mtx_f != "None"){
     binary_mtx <- read_csv(file =binary_mtx_f)
     binary_mtx <- binary_mtx %>% tibble::column_to_rownames(var= "X1")
@@ -323,7 +323,7 @@ Num_annotation_per_regulon <- function(cellInfo_f=params$annotation_celltype,bin
 barplot_theme <- list(theme(axis.text.x = element_text(angle=45,hjust = 1,vjust =1, size=5),axis.title = element_text(size=6), plot.title = element_text(size=7)))
 
 
-regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option= params$GO_ont_option,pathway_db="enrichGO", maxGSSize=params$MaxGSSize, pvalueCutoff=params$pvalueCutoff, qvalueCutoff=params$qvalueCutoff){
+regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option= params$go_ont_option,pathway_db="enrichGO", maxGSSize=params$maxGSSize, pvalueCutoff=params$pvaluecutoff, qvalueCutoff=params$qvaluecutoff){
   
   regulon_genes <- read_csv(file=regulons_f)  
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note 
@@ -351,7 +351,7 @@ regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option
     
   }else if(params$species == "human"){
     library(org.Hs.eg.db)
-    res <- compareCluster(geneClusters = genes_list ,pAdjustMethod = "BH", pvalueCutoff = 0.05, qvalueCutoff = 0.05, maxGSSize = maxGSSize, keyType="SYMBOL", OrgDb= org.Hs.eg.db, readable=F, ont=ont_option,fun =pathway_db, universe=universe)
+    res <- compareCluster(geneClusters = genes_list ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, keyType="SYMBOL", OrgDb= org.Hs.eg.db, readable=F, ont=ont_option,fun =pathway_db, universe=universe)
     if(pathway_db=="enrichGO"){
       res_simplify <- clusterProfiler::simplify(x = res, cutoff=0.7)
       saveRDS(res_simplify,file = paste0(results_directory,'/',datatype,'/',pathway_db,'_simplified_regulons_results', '.rds'))
@@ -363,7 +363,7 @@ regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option
     
   }else if(params$species == "mouse"){
     library(org.Mm.eg.db)
-    res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = 0.05, qvalueCutoff = 0.05, maxGSSize =maxGSSize,fun = pathway_db)
+    res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize,fun = pathway_db)
     if(pathway_db=="enrichGO"){
       res_simplify <- clusterProfiler::simplify(x = res, cutoff=0.7)
       saveRDS(res_simplify,file = paste0(results_directory,'/',datatype,'/',pathway_db,'_simplified_regulons_results','.rds'))
@@ -413,7 +413,7 @@ if(wilcoxon_f != "None"){
 }
 
 
-reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichPathway", maxGSSize=1000,pvalueCutoff=params$pvalueCutoff, qvalueCutoff=params$qvalueCutoff){
+reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichPathway", maxGSSize=params$maxGSSize,pvalueCutoff=params$pvaluecutoff, qvalueCutoff=params$qvaluecutoff){
   
   regulon_genes <- read_csv(file=regulons_f)  
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note 
@@ -473,7 +473,7 @@ reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_d
 
 
 
-kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichKEGG", maxGSSize=1000,pvalueCutoff=params$pvalueCutoff, qvalueCutoff=params$qvalueCutoff){
+kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichKEGG", maxGSSize=params$maxGSSize,pvalueCutoff=params$pvaluecutoff, qvalueCutoff=params$qvaluecutoff){
   
   regulon_genes <- read_csv(file=regulons_f)  
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note 
@@ -531,7 +531,7 @@ kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="e
 }
 
 
-msigdb_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enricher", maxGSSize=params$MaxGSSize, pvalueCutoff=params$pvalueCutoff, qvalueCutoff=params$qvalueCutoff,msigdb_geneset=params$Msigdb_geneset){
+msigdb_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enricher", maxGSSize=params$maxGSSize, pvalueCutoff=params$pvaluecutoff, qvalueCutoff=params$qvaluecutoff,msigdb_geneset=params$msigdb_geneset){
   
   regulon_genes <- read_csv(file=regulons_f)  
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note 
@@ -627,7 +627,7 @@ rss_pathway_plot <- function(rss_f=params$rss_celltype,annotation_type= params$c
 # "annotation_type" in function giving the type of annotation : options : celltype, stim or celltype_stim
 if(params$celltype_zscores != "None"){
   celltype_zscores <- read.csv(file=params$celltype_zscores,header=T)
-  zscore_heatmap(zscores_df = celltype_zscores,plot_height = 9,plot_width = 8, filter_threshold = params$celltype_zscore_filter_threshod, annotation_type = params$celltype)
+  zscore_heatmap(zscores_df = celltype_zscores,plot_height = 9,plot_width = 8, filter_threshold = params$celltype_zscore_filter_threshold, annotation_type = params$celltype)
 } else {
   print("No celltype zscore file provided")
 }
@@ -670,7 +670,7 @@ if(params$stim_zscores != "None" & params$stim_zscore_filter_threshold !="None")
 
 ```{r, fig.height=9,fig.width=12}
 # "annotation_type" in function giving the type of annotation : options : celltype, stim or celltype_stim . This is based on the  2nd column name in params$annotation_celltype file
-binary_celltype_perc_heatmap(cellInfo_f=params$annotation_celltype, binary_mtx_f=params$binary_auc_mtx, minPerc=0.70, annotation_type =params$celltype,plot_height=7,plot_width=10, units="in")
+binary_celltype_perc_heatmap(cellInfo_f=params$annotation_celltype, binary_mtx_f=params$binary_mtx, minPerc=0.70, annotation_type =params$celltype,plot_height=7,plot_width=10, units="in")
 
 ```
 
@@ -692,7 +692,7 @@ binary_celltype_perc_heatmap(plot_height = 10,plot_width = 15, annotation_type =
 # Binary AUC score Heatmap
 
 ```{r, fig.width=12, fig.height=11}
-binary_auc_heatmap(annotation_col_f = params$binary_heatmap_cell_annotations, plot_height=10,binary_mtx_f = params$binary_auc_mtx)
+binary_auc_heatmap(annotation_col_f = params$binary_heatmap_cell_annotations, plot_height=10,binary_mtx_f = params$binary_mtx)
 ```
 
 
@@ -764,7 +764,7 @@ Num_annotation_per_regulon(cellInfo_f = params$annotation_celltype_stim,binary_m
 
 ```{r}
 if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  GO_res <- regulon_pathway_enrichment(regulons_f = params$regulon_genes, ont_option = params$GO_ont_option,pathway_db = "enrichGO",maxGSSize = params$MaxGSSize,pvalueCutoff = params$pvalueCutoff,qvalueCutoff = params$qvalueCutoff)
+  GO_res <- regulon_pathway_enrichment(regulons_f = params$regulon_genes, ont_option = params$go_ont_option,pathway_db = "enrichGO",maxGSSize = params$maxGSSize,pvalueCutoff = params$pvaluecutoff,qvalueCutoff = params$qvaluecutoff)
 }else{
   print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
 }
@@ -792,7 +792,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$wilcoxon_condition_top,annotation_type=
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$KS_celltype_top, annotation_type ="test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "GO_term",res_f = GO_res,plot_col = 2,plot_row = 2)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type ="test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "GO_term",res_f = GO_res,plot_col = 2,plot_row = 2)
 ```
 
 
@@ -801,7 +801,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$KS_celltype_top, annotation_type ="test
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$KS_condition_top, annotation_type = "test", test_type="reference", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_condition",pathwaydb = "GO_term",res_f = GO_res,plot_row = 0,plot_col = 4)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_condition_top, annotation_type = "test", test_type="reference", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_condition",pathwaydb = "GO_term",res_f = GO_res,plot_row = 0,plot_col = 4)
 ```
 
 
@@ -842,7 +842,7 @@ rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$cellt
 ```{r}
 
 if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  Reactome_res <- reactome_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichPathway",maxGSSize = 1000)
+  Reactome_res <- reactome_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichPathway",maxGSSize = params$maxGSSize)
 }else{
   print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
 }
@@ -871,7 +871,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$wilcoxon_condition_top,annotation_type=
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$KS_celltype_top, annotation_type = "test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "Reactome",res_f = Reactome_res)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type = "test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "Reactome",res_f = Reactome_res)
 ```
 
 
@@ -880,7 +880,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$KS_celltype_top, annotation_type = "tes
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$KS_condition_top, annotation_type ="test", test_type="reference", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_condition",pathwaydb = "Reactome",res_f = Reactome_res)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_condition_top, annotation_type ="test", test_type="reference", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_condition",pathwaydb = "Reactome",res_f = Reactome_res)
 ```
 
 
@@ -921,7 +921,7 @@ rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$cellt
 
 ```{r}
 if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  msigdb_c2_res <- msigdb_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enricher",maxGSSize = params$MaxGSSize, pvalueCutoff = params$pvalueCutoff, qvalueCutoff = params$qvalueCutoff,msigdb_geneset = params$Msigdb_geneset)
+  msigdb_c2_res <- msigdb_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enricher",maxGSSize = params$maxGSSize, pvalueCutoff = params$pvaluecutoff, qvalueCutoff = params$qvaluecutoff,msigdb_geneset = params$msigdb_geneset)
 }else{
   print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
 }
@@ -949,7 +949,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$wilcoxon_condition_top,annotation_type=
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$KS_celltype_top, annotation_type ="test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_col = 2,plot_row = 2)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type ="test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_col = 2,plot_row = 2)
 ```
 
 
@@ -958,7 +958,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$KS_celltype_top, annotation_type ="test
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$KS_condition_top, annotation_type = "test", test_type="reference", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_condition",pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_row = 0,plot_col = 4)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_condition_top, annotation_type = "test", test_type="reference", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_condition",pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_row = 0,plot_col = 4)
 ```
 
 
@@ -996,7 +996,7 @@ rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$cellt
 
 ```{r}
 if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  KEGG_res <- kegg_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichKEGG",maxGSSize = 1000,pvalueCutoff = params$pvalueCutoff, qvalueCutoff = params$qvalueCutoff)
+  KEGG_res <- kegg_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichKEGG",maxGSSize = params$maxGSSize,pvalueCutoff = params$pvaluecutoff, qvalueCutoff = params$qvaluecutoff)
 }else{
   print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
 }
@@ -1025,7 +1025,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$wilcoxon_condition_top,annotation_type=
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$KS_celltype_top, annotation_type = "test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "KEGG",res_f = KEGG_res)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type = "test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "KEGG",res_f = KEGG_res)
 ```
 
 
@@ -1034,7 +1034,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$KS_celltype_top, annotation_type = "tes
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$KS_condition_top, annotation_type ="test", test_type="reference", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_condition",pathwaydb = "KEGG",res_f = KEGG_res)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_condition_top, annotation_type ="test", test_type="reference", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_condition",pathwaydb = "KEGG",res_f = KEGG_res)
 ```
 
 ### Top 10 RSS Regulons (celltype)
