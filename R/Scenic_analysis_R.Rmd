@@ -23,7 +23,7 @@ params:
   celltype_zscores: "./auc_zscores_celltype_annotations.csv" # Zscores based on auc for celltypes or "None"
   celltype_stim_zscores: "./auc_zscores_celltype_ann_stim_annotations.csv"  # Zscores based on auc for celltype_stim joint or "None"
   stim_zscores: "./auc_zscores_thirst2_condition_annotations.csv" # Zscores based on auc for condition or "None"
-  celltype_zscore_filter_threshod: 3 # Zscore filter threshold for celltype specific scores for heatmap or "None"
+  celltype_zscore_filter_threshold: 3 # Zscore filter threshold for celltype specific scores for heatmap or "None"
   stim_zscore_filter_threshold: 1 # Zscore filter threshold for  condition specific scores for heatmap or "None"
   celltype_stim_zscore_filter_threshold: 4 # Zscore filter threshold for  celltype + condition specific  scores for heatmap or "None"
   binary_auc_mtx: "./binary_matrix.csv" # Binary Auc scores for each cell or "None"
