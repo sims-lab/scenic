@@ -4,7 +4,7 @@ author: "Lucy Garner"
 date: "`r Sys.Date()`"
 output: html_document
 params:
-    workingdir: "pyscenic_results.dir"
+    working_dir: "pyscenic_results.dir"
     seurat_object: "../../results/Robjects/merged_all_analysed.rds"
     aucell_scores: "../../results/pyscenic/normalised/merged-all_aucell.csv"
     aucell_zscores: "../../results/pyscenic/normalised/aucell_zscores.csv"
