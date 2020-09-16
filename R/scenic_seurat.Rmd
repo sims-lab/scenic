@@ -626,3 +626,21 @@ if (params$condition != "None") {
              filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_wilcoxon_", params$condition, "_average_heatmap.pdf"), width = 5, height = 6)
 }
 ```
+
+```{r Heatmap_ks_average}
+Idents(seurat_object) <- params$cell_type
+top10_ks_celltype_average <- AverageExpression(seurat_object, features = unique( top10_ks_celltype$regulon), assays = "scenic", slot = "scale.data")
+top10_ks_celltype_average <- top10_ks_celltype_average[["scenic"]]
+pheatmap(top10_ks_celltype_average, scale = "row", 
+         filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_ks_", params$cell_type, "_average_heatmap.pdf"), width = 5, height = 8,fontsize=6)
+
+if (params$condition != "None") {
+    Idents(seurat_object) <- params$condition
+    top10_ks_condition_ref_average <- AverageExpression(seurat_object, features = unique( top10_ks_condition$regulon), assays = "scenic", slot = "scale.data")
+    top10_ks_condition_reference <- top10_ks_condition_reference[["scenic"]]
+    pheatmap(top10_ks_condition_ref_average, scale = "row", 
+             filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_ks_", params$condition, "_average_heatmap.pdf"), width = 5, height = 6)
+}
+
+
+```
