@@ -29,14 +29,10 @@ PARAMS = P.get_parameters(
       "pipeline.yml"])
 
 @follows(mkdir("plots.dir"))
-@transform("pyscenic_results.dir/*_aucell.csv", regex(r"pyscenic_results.dir/([^_]+)_aucell.csv"), r"plots.dir/aucell_heatmap.png")
+@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"plots.dir/\1.dir/aucell_heatmap.png")
 def aucell_heatmap(infile, outfile):
 
-    exp_mtx = infile.replace("pyscenic_results.dir", "data.dir")
-    if PARAMS["datatype"] == "raw":
-        exp_mtx = exp_mtx.replace("aucell.csv", "filtered-raw-expression.csv")
-    elif PARAMS["datatype"] == "normalised":
-        exp_mtx = exp_mtx.replace("aucell.csv", "filtered-normalised-expression.csv")
+    exp_mtx = infile.replace("aucell.csv", "filtered-expression.csv")
 
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
 
@@ -48,7 +44,7 @@ def aucell_heatmap(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["aucell_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform("pyscenic_results.dir/*_reg.csv", regex(r"pyscenic_results.dir/([^_]+)_reg.csv"), r"pyscenic_results.dir/regulons.csv")
+@transform("pyscenic_results.dir/*.dir/*_reg.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_reg.csv"), r"pyscenic_results.dir/\1.dir/regulons.csv")
 def generate_regulons(infile, outfile):
 
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
@@ -59,7 +55,7 @@ def generate_regulons(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["regulons_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform("pyscenic_results.dir/*_aucell.csv", regex(r"pyscenic_results.dir/([^_]+)_aucell.csv"), r"pyscenic_results.dir/aucell_thresholds.csv")
+@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"pyscenic_results.dir/\1.dir/aucell_thresholds.csv")
 def regulon_binarization(infile, outfile):
 
     if PARAMS["binarize_tab"] == None:
@@ -82,14 +78,10 @@ def regulon_binarization(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["binarize_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform("pyscenic_results.dir/*_aucell.csv", regex(r"pyscenic_results.dir/([^_]+)_aucell.csv"), r"pyscenic_results.dir/aucell_zscores.csv")
+@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"pyscenic_results.dir/\1.dir/\2_aucell_zscores.csv")
 def rss_zscore(infile, outfile):
 
-    exp_mtx = infile.replace("pyscenic_results.dir", "data.dir")
-    if PARAMS["datatype"] == "raw":
-        exp_mtx = exp_mtx.replace("aucell.csv", "filtered-raw-expression.csv")
-    elif PARAMS["datatype"] == "normalised":
-        exp_mtx = exp_mtx.replace("aucell.csv", "filtered-normalised-expression.csv")
+    exp_mtx = infile.replace("aucell.csv", "filtered-expression.csv")
 
     if PARAMS["rss_zscore_tab"] == None:
         rss_zscore_tab = ""

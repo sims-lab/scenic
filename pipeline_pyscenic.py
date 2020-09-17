@@ -12,7 +12,7 @@ This pipeline performs pySCENIC analysis (https://pyscenic.readthedocs.io/en/lat
 including:
 1. Deriving co-expression modules
 2. Finding enriched motifs and corresponding target genes for modules
-3. Quantifying activity of gene signatures across single cells
+3. Quantifying activity of gene signatures/regulons across single cells
 
 
 Usage
@@ -31,12 +31,14 @@ Input files
 -----------
 Four files as follows:
 
-1. Raw UMI expression matrix:
+1. Raw or normalised expression matrix:
+NB: Only currently works for CSV
+
 Can be supplied as h5ad-formatted hdf5 file containing an AnnData object or as a csv (genes as rows, cells as columns) file
 Should have been filtered to remove low quality cells and doublets
 AnnData object can be downsampled within pipeline, whereas csv files should be downsampled before input
 
-h5ad file should be named *_anndata.h5ad and csv file should be named *_raw-expression.csv
+h5ad file should be named *_anndata.h5ad and csv file should be named *_raw-expression.csv/*_normalised-expression.csv
 Files should be inside a data.dir directory
 
 2. A list of TFs from the genome under study
@@ -44,9 +46,6 @@ Files should be inside a data.dir directory
 
 3. Databases ranking the whole genome of your species of interest based on regulatory features (i.e. transcription factors)
 Ranking databases are typically stored in the feather format and can be downloaded from cisTargetDBs
-Motif annotation database providing the missing link between an enriched motif
-and the transcription factor that binds this motif
-This pipeline needs a TSV text file where every line represents a particular annotation
 (inside resources.dir directory; database_fname in pipeline.yml)
 
 4. Motif annotation database providing the missing link between an enriched motif and
@@ -62,8 +61,9 @@ This pipeline requires: cgatcore, pyscenic and dependencies
 Pipeline output
 ===============
 
-_aucell.csv file giving the activity of identified gene regulatory modules within
-each cell
+_adjacencies.csv    # gives strength of evidence for association between TF and targets
+_reg.csv    # modules of TFs and their target genes (not been refined to regulons)
+_aucell.csv   # activity of identified gene regulatory modules within each cell
 
 
 """
@@ -78,8 +78,12 @@ PARAMS = P.get_parameters(
       "../pipeline.yml",
       "pipeline.yml"])
 
+#if not os.path.exists("data.dir/" + PARAMS["datatype"] + ".dir"):
+#    os.makedirs("data.dir/" + PARAMS["datatype"] + ".dir")
+
 @active_if(PARAMS["filtering_input_format"] == "csv")
-@transform("data.dir/*_*-expression.csv", regex(r"data.dir/([^_]+)_(r.*|n.*)-expression.csv"), r"data.dir/\1_filtered-\2-expression.csv")
+@follows(mkdir("pyscenic_results.dir"))
+@transform("data.dir/*_*-expression.csv", regex(r"data.dir/([^_]+)_(r.*|n.*)-expression.csv"), r"pyscenic_results.dir/\2.dir/\1_filtered-expression.csv")
 def gene_filtering(infile, outfile):
     '''
     Filtering of the input raw UMI expression matrix to remove genes expressed in few cells
@@ -94,31 +98,33 @@ def gene_filtering(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["filtering_threads"], job_memory = '2G', job_queue = PARAMS["cluster_queue"])
 
-@active_if(PARAMS["filtering_input_format"] == "h5ad")
-@transform("data.dir/*_anndata.h5ad", regex(r"data.dir/([^_]+)_anndata.h5ad"), r"data.dir/\1_filtered-raw-expression.csv")
-def extract_anndata(infile, outfile):
-    '''
-    Extracts raw expression matrix from AnnData object
-    Filters to remove genes expressed in few cells
-    '''
+# TODO: Fix script to work with AnnData objects
+# @active_if(PARAMS["filtering_input_format"] == "h5ad")
+# @follows(mkdir("pyscenic_results.dir"))
+# @transform("data.dir/*_anndata.h5ad", regex(r"data.dir/([^_]+)_anndata.h5ad"), r"data.dir/\1_filtered-raw-expression.csv")
+# def extract_anndata(infile, outfile):
+#     '''
+#     Extracts raw expression matrix from AnnData object
+#     Filters to remove genes expressed in few cells
+#     '''
+#
+#     if PARAMS["filtering_other_options"] == None:
+#         filtering_other_options = ""
+#     else:
+#         filtering_other_options = PARAMS["filtering_other_options"]
+#
+#     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
+#
+#     statement = """python %(PY_PATH)s/extract_from_anndata.py
+#                 --input %(infile)s --umi_counts %(filtering_UMI_counts)s
+#                 --min_percent %(filtering_min_percent)s
+#                 %(filtering_other_options)s
+#                 --output %(outfile)s"""
+#
+#     P.run(statement, job_threads = PARAMS["filtering_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-    if PARAMS["filtering_other_options"] == None:
-        filtering_other_options = ""
-    else:
-        filtering_other_options = PARAMS["filtering_other_options"]
-
-    PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
-
-    statement = """python %(PY_PATH)s/extract_from_anndata.py
-                --input %(infile)s --umi_counts %(filtering_UMI_counts)s
-                --min_percent %(filtering_min_percent)s
-                %(filtering_other_options)s
-                --output %(outfile)s"""
-
-    P.run(statement, job_threads = PARAMS["filtering_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
-
-@follows(mkdir("pyscenic_results.dir"))
-@transform([gene_filtering, extract_anndata], regex(r"data.dir/([^_]+)_filtered-(r.*|n.*)-expression.csv"), r"pyscenic_results.dir/\1_adjacencies.tsv")
+# @transform([gene_filtering, extract_anndata], regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_adjacencies.tsv")
+@transform(gene_filtering, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_adjacencies.tsv")
 def arboreto_with_multiprocessing(infile, outfile):
     '''
     Gene regulatory network inference
@@ -140,7 +146,7 @@ def arboreto_with_multiprocessing(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["grn_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform(arboreto_with_multiprocessing, regex(r"pyscenic_results.dir/([^_]+)_adjacencies.tsv"), add_inputs(output_from(gene_filtering)), r"pyscenic_results.dir/\1_reg.csv")
+@transform(arboreto_with_multiprocessing, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_adjacencies.tsv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_reg.csv")
 def pyscenic_ctx(infiles, outfile):
     '''
     Regulons are derived from adjacencies
@@ -174,7 +180,7 @@ def pyscenic_ctx(infiles, outfile):
 
     P.run(statement, job_threads = PARAMS["ctx_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform(pyscenic_ctx, regex(r"pyscenic_results.dir/([^_]+)_reg.csv"), add_inputs(output_from(gene_filtering)), r"pyscenic_results.dir/\1_aucell.csv")
+@transform(pyscenic_ctx, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_reg.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_aucell.csv")
 def pyscenic_aucell(infiles, outfile):
     '''
     Characterise cells by enrichment of previously discovered regulons

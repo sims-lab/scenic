@@ -16,9 +16,9 @@ import logging
 os.environ['NUMEXPR_MAX_THREADS'] = '5'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--exp_mtx', default = 'data.dir/merged-all-1000_filtered-raw-expression.csv',    # raw data matrix - genes x cells
+parser.add_argument('--exp_mtx', default = 'data.dir/raw.dir/merged-all-1000_filtered-raw-expression.csv',    # raw data matrix - genes x cells
                     help = 'path to h5ad-formatted hdf5 file containing AnnData object')
-parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/merged-all-1000_aucell.csv',
+parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/raw.dir/merged-all-1000_aucell.csv',
                     help = 'Output from pyscenic aucell, matrix of AUCell scores')
 parser.add_argument('--annotation_files', default = 'data.dir/merged_all_stimulation_annotation.csv,data.dir/merged_all_cluster_annotation.csv',
                     help = 'files containing mapping between cell barcodes (1st column) and annotations of interest e.g. clusters (2nd column)')
@@ -31,6 +31,11 @@ annotation_files = annotation_files.split(',')
 
 logging.basicConfig(filename = 'rss_zscore.log', level = logging.DEBUG)
 logging.info(args)
+
+if "raw" in args.exp_mtx:
+    datatype = "raw"
+elif "normalised" in args.exp_mtx:
+    datatype = "normalised"
 
 # Regulon specificity scores
 logging.info("About to calculate regulon specificity scores")
@@ -58,7 +63,7 @@ else:
 for annotation in annotation_dict.keys():
     rss_louvain = regulon_specificity_scores(auc_mtx, annotation_dict[annotation])
     rss_louvain.insert(0, annotation, rss_louvain.index.values)
-    rss_louvain.to_csv('pyscenic_results.dir/' + annotation + '_RSS.csv', index = False)
+    rss_louvain.to_csv('pyscenic_results.dir/' + datatype + '.dir/' + annotation + '_RSS.csv', index = False)
 
 logging.info("Calculated regulon specificity scores")
 
@@ -68,7 +73,7 @@ logging.info("Calculated regulon specificity scores")
 auc_mtx_Z = pd.DataFrame(index = auc_mtx.index)
 for col in list(auc_mtx.columns):
     auc_mtx_Z[col] = (auc_mtx[col] - auc_mtx[col].mean()) / auc_mtx[col].std(ddof = 0)
-auc_mtx_Z.to_csv('pyscenic_results.dir/aucell_zscores.csv')
+auc_mtx_Z.to_csv('pyscenic_results.dir/' + datatype + '.dir/aucell_zscores.csv')
 
 # Z-score per cluster/annotation group
 # To find cell type specific regulators we use a Z score (i.e. the average AUCell
@@ -87,12 +92,12 @@ for annotation in annotation_dict.keys():
     aucell_score = aucell_score.merge(aucell_score.groupby(['regulon'])['score'].std().rename('regulon_sd').reset_index())
     aucell_score['annotation_zscore'] = (aucell_score.annotation_mean - aucell_score.regulon_mean)/aucell_score.regulon_sd
     aucell_score = aucell_score.drop_duplicates(subset = ['regulon', 'annotation']).loc[:, ['regulon', 'annotation', 'annotation_zscore']]
-    aucell_score.to_csv('pyscenic_results.dir/aucell_zscores_' + annotation + '.csv', index = False)
+    aucell_score.to_csv('pyscenic_results.dir/' + datatype + '.dir/aucell_zscores_' + annotation + '.csv', index = False)
 
     # Cell specific regulators have a Z-score greater than 3
     aucell_score_3 = aucell_score[(aucell_score.annotation_zscore >= 3.0)].sort_values('annotation_zscore', ascending = False)
-    aucell_score_3.to_csv('pyscenic_results.dir/aucell_zscores_' + annotation + '_specific_regulators_3.csv', index = False)
+    aucell_score_3.to_csv('pyscenic_results.dir/' + datatype + '.dir/aucell_zscores_' + annotation + '_specific_regulators_3.csv', index = False)
 
     # Cell specific regulators have a Z-score greater than 2
     aucell_score_2 = aucell_score[(aucell_score.annotation_zscore >= 2.0)].sort_values('annotation_zscore', ascending = False)
-    aucell_score_2.to_csv('pyscenic_results.dir/aucell_zscores_' + annotation + '_specific_regulators_2.csv', index = False)
+    aucell_score_2.to_csv('pyscenic_results.dir/' + datatype + '.dir/aucell_zscores_' + annotation + '_specific_regulators_2.csv', index = False)

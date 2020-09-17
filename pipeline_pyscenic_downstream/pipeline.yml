@@ -3,14 +3,14 @@
 cluster:
     queue: batchq
 
-datatype: normalised    # can be raw or normalised
+datatype: raw   # can be raw or normalised
 
 aucell:
     tab: -t     # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
-    threads: 15
+    threads: 5     # 15
 
 regulons:
-    threads: 15
+    threads: 5    # 15
 
 binarize:
     tab: -t     # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
@@ -18,6 +18,6 @@ binarize:
     threads: 20    # max is 20
 
 rss_zscore:
-    annotation_files: data.dir/merged_all_stimulation_annotation.csv,data.dir/merged_all_cluster_annotation.csv
+    annotation_files: data.dir/GI2792_graft_donorcells_annotation.csv
     tab: -t      # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
     threads: 5
