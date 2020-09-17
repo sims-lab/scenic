@@ -4,49 +4,48 @@ cluster:
     queue: all.q
 
 datatype: raw    # can be raw or normalised
-working_dir: ifs/research-groups/cncb/proj021/analyses/Pyscenic/
+working_dir: /ifs/research-groups/cncb/proj021/analyses/Pyscenic_glia/scenic
 results_directory: pyscenic_results.dir/pyscenic_r
 plots_directory: plots.dir/pyscenic_r
 binary_matrix: pyscenic_results.dir/binary_matrix.csv
-aucell_scores: pyscenic_results.dir/merged-all_aucell.csv
+aucell_scores: pyscenic_results.dir/Thirst2Glia_aucell.csv
 aucell_zscores: pyscenic_results.dir/aucell_zscores.csv
-aucell_zscores_celltype: pyscenic_results.dir/aucell_zscores_merged_all_cluster_annotation.csv
-aucell_zscores_condition: pyscenic_results.dir/aucell_zscores_merged_all_stimulation_annotation.csv
-
+aucell_zscores_celltype: pyscenic_results.dir/aucell_zscores_Glia_celltype_ann_annotations.csv
+aucell_zscores_condition: pyscenic_results.dir/aucell_zscores_Glia_condition_annotations.csv
 rseurat:
     threads: 15
-    seurat_object: /Robjects/merged_all_analysed.rds
+    seurat_object: Robjects/Thirst2_TrimPlus_Glia.rds
     umap_pcs: 8    # how many PCs to use for clustering on AUCell scores
-    cell_type: celltype
+    cell_type: celltype_ann
     condition: stim
-    clustering_resolution: 1.5
+    clustering_resolution: 0.8
     stacked_vln_function: R/stacked_violin.R
     reference_condition: sat00
-    FDR_threshold: 0.001     # FDR threshold for top 10 wilcoxon heatmap
+    FDR_threshold: 0.01   # FDR threshold for top 10 wilcoxon heatmap
 
 rscenic:
     num_workers: 15 # Number of cores
     datatype: raw # raw or normalised
-    celltype: celltype # column name for cell celltype annotations in files or "None"
+    celltype: celltype_ann # column name for cell celltype annotations in files or "None"
     condition: stim # column name for condition annotation in files or "None"
     celltype_condition: celltype_stim # column name for celltype_condition columns in files or "None"
-    celltype_stim_zscores: pyscenic_results.dir/auc_zscores_celltype_ann_stim_annotations.csv  # Zscores based on auc for celltype_stim joint or "None"
-    celltype_zscore_filter_threshold: 3 # Zscore filter threshold for celltype specific scores for heatmap or "None"
+    celltype_stim_zscores: pyscenic_results.dir/aucell_zscores_Glia_celltype_stim_annotations.csv  # Zscores based on auc for celltype_stim joint or "None"
+    celltype_zscore_filter_threshold: 2 # Zscore filter threshold for celltype specific scores for heatmap or "None"
     stim_zscore_filter_threshold: 1 # Zscore filter threshold for  condition specific scores for heatmap or "None"
-    celltype_stim_zscore_filter_threshold: 4 # Zscore filter threshold for  celltype + condition specific  scores for heatmap or "None"
-    annotation_celltype: data.dir/celltype_annotations.csv # csv file with cellid & celltype annotations for each cell or "None"
-    annotation_stim: data.dir/thirst2_condition_annotations.csv # csv file with cellid & stim annotation  for each cell or "None"
-    annotation_celltype_stim: data.dir/broad_celltype_stim_annotations.csv #csv file with cellid & celltype_stim annotation for each cell or "None"
-    binary_heatmap_cell_annotations : data.dir/broad_celltype_annotations.csv # csv file with cellid and annotation data per cell for binary all cells heatmap or "None"
-    rss_celltype: pyscenic_results.dir/broad_celltype_annotations_RSS.csv # RSS scores per regulon for celltype or "None"
-    rss_stim: pyscenic_results.dir/thirst2_condition_annotations_RSS.csv # RSS scores per regulon for stim or "None"
-    rss_celltype_stim: pyscenic_results.dir/broad_celltype_stim_annotations_RSS.csv # RSS scores per regulon for celltype_stim or "None"
-    species: human # fly ;human ,mouse or None
+    celltype_stim_zscore_filter_threshold: 2 # Zscore filter threshold for  celltype + condition specific  scores for heatmap or "None"
+    annotation_celltype: data.dir/Glia_celltype_ann_annotations.csv # csv file with cellid & celltype annotations for each cell or "None"
+    annotation_stim: data.dir/Glia_condition_annotations.csv # csv file with cellid & stim annotation  for each cell or "None"
+    annotation_celltype_stim: data.dir/Glia_celltype_stim_annotations.csv #csv file with cellid & celltype_stim annotation for each cell or "None"
+    binary_heatmap_cell_annotations : data.dir/Glia_celltype_ann_annotations.csv  # csv file with cellid and annotation data per cell for binary all cells heatmap or "None"
+    rss_celltype: pyscenic_results.dir/Glia_celltype_ann_annotations_RSS.csv # RSS scores per regulon for celltype or "None"
+    rss_stim: pyscenic_results.dir/Glia_condition_annotations_RSS.csv # RSS scores per regulon for stim or "None"
+    rss_celltype_stim: pyscenic_results.dir/Glia_celltype_stim_annotations_RSS.csv # RSS scores per regulon for celltype_stim or "None"
+    species: fly # fly ;human ,mouse or None
     regulon_genes: pyscenic_results.dir/regulons.csv #regulon files generatated from Pyscenic pipeline or "None"
-    exp_matrix: data.dir/Thirst2trimPlus_filtered-raw-expression.csv # filtered-raw-expression.csv exp matrix generated in step1 of pipeline for background for pathway analysis or "None"
+    exp_matrix: data.dir/Thirst2Glia_filtered-raw-expression.csv # filtered-raw-expression.csv exp matrix generated in step1 of pipeline for background for pathway analysis or "None"
     go_ont_option: BP # "BP", "MF" , "CC" or "ALL" for all three. Default is "MF" in ClusterProfiler
     wilcoxon_celltype_top: wilcoxon_celltype_top10.csv #or "None"
-    wilcoxon_condition_top: wilcoxon_condition_reference_top10.csv # or "None"
+    wilcoxon_condition_top: wilcoxon_condition_top10.csv # or "None"
     ks_celltype_top: ks_celltype_top10.csv # or "None"
     ks_condition_top: ks_condition_top10.csv # or "None"
     pvaluecutoff: 0.05 # Pathway enrichment cutoffs
