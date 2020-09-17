@@ -77,7 +77,8 @@ def scenic_seurat(infile, outfile):
                         2> %(outbase)s.err '''
 
     P.run(statement, job_threads = PARAMS["rseurat_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
-
+    
+    @follows(scenic_seurat)
     @transform("pyscenic_results.dir/binary_matrix.csv", regex(r"pyscenic_results.dir/binary_matrix.csv"), r"reports.dir/Scenic_analysis_R.html")
     def rscenic(infile, outfile):
         ''' R based analyses for scenic results'''
