@@ -11,12 +11,12 @@ filtering:
     other_options: # --downsample --cell_number 200000     # only use for h5ad file format
 
 grn:
-    threads: 20   # 18
+    threads: 5   # 18
     tfs_list: resources.dir/lambert2018.txt
     other_options: -t    # add -t if csv file is genes (rows) x cells (columns)
 
 ctx:
-    threads: 20   #10
+    threads: 5   # 10
     annotations: resources.dir/motifs-v9-nr.hgnc-m0.001-o0.0.tbl
     # the name of the file that contains the motif annotations to use
     database_fname:
@@ -26,6 +26,6 @@ ctx:
     other_options: -t     # --mask_dropouts, add -t if csv file is genes (rows) x cells (columns)
 
 aucell:
-    threads: 20    #18
+    threads: 5   # 18
     auc_threshold: 0.05
     other_options: -t     # add -t if csv file is genes (rows) x cells (columns)
