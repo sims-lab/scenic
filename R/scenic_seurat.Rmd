@@ -644,6 +644,4 @@ if (params$condition != "None") {
     pheatmap(top10_ks_condition_average, scale = "row",
              filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_ks_", params$condition, "_average_heatmap.pdf"), width = 5, height = 6)
 }
-
-
 ```
