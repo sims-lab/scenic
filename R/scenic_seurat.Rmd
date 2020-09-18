@@ -151,8 +151,10 @@ if (params$condition != "None") {
 # Perform clustering
 seurat_object <- FindNeighbors(seurat_object, assay = "scenic", reduction = "scenic_pca",
                                dims = 1:params$umap_pcs)
-seurat_object <- FindClusters(seurat_object, graph.name = "scenic_snn", res = params$clustering_resolution)
+seurat_object <- FindClusters(seurat_object, graph.name = "scenic_snn", resolution = as.numeric(params$clustering_resolution))
 DimPlot(seurat_object, reduction = "scenic_umap", group.by = params$cell_type, label = T, label.size = 3) + NoLegend()
+
+saveRDS(seurat_object, file = paste0(results_directory, "/", datatype, "/","scenic_seurat_object",".rds"))
 ```
 
 #### Violin plots split by condition and cell type
@@ -637,9 +639,9 @@ pheatmap(top10_ks_celltype_average, scale = "row",
 
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
-    top10_ks_condition_ref_average <- AverageExpression(seurat_object, features = unique( top10_ks_condition$regulon), assays = "scenic", slot = "scale.data")
-    top10_ks_condition_reference <- top10_ks_condition_reference[["scenic"]]
-    pheatmap(top10_ks_condition_ref_average, scale = "row",
+    top10_ks_condition_average <- AverageExpression(seurat_object, features = unique( top10_ks_condition$regulon), assays = "scenic", slot = "scale.data")
+    top10_ks_condition_average <- top10_ks_condition_average[["scenic"]]
+    pheatmap(top10_ks_condition_average, scale = "row",
              filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_ks_", params$condition, "_average_heatmap.pdf"), width = 5, height = 6)
 }
 

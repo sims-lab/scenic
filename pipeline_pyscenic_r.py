@@ -18,6 +18,7 @@ including:
 from ruffus import *
 import sys
 import os
+import re
 from cgatcore import pipeline as P
 
 PARAMS = P.get_parameters(
@@ -26,26 +27,26 @@ PARAMS = P.get_parameters(
       "pipeline.yml"])
 
 @follows(mkdir("reports.dir"))
-@transform("pyscenic_results.dir/*_aucell.csv", regex(r"pyscenic_results.dir/([^_]+)_aucell.csv"), r"reports.dir/scenic_seurat.html")
+@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"reports.dir/\1.dir/scenic_seurat.html")
 def scenic_seurat(infile, outfile):
     ''' Seurat based analyses for scenic results'''
 
-    if PARAMS["datatype"] == "raw":
-        outfile = outfile.replace("scenic_seurat.html", "scenic_seurat_raw.html")
-    elif PARAMS["datatype"] == "normalised":
-        outfile = outfile.replace("scenic_seurat.html", "scenic_seurat_normalised.html")
+    if "normalised" in infile:
+        datatype = "normalised"
+    elif "raw" in infile:
+        datatype = "raw"
 
     R_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "R")
     outbase = P.snip(outfile, ".html")
+    dir = re.sub("[^\/_]+_aucell.csv", "", infile)
+    aucell_zscores = dir + PARAMS["aucell_zscores"]
+    aucell_zscores_celltype = dir + PARAMS["aucell_zscores_celltype"]
+    aucell_zscores_condition = dir + PARAMS["aucell_zscores_condition"]
+    binary_matrix = dir + PARAMS["binary_matrix"]
     working_dir = PARAMS["working_dir"]
     seurat_object = PARAMS["rseurat_seurat_object"]
-    aucell_zscores = PARAMS["aucell_zscores"]
-    aucell_zscores_celltype = PARAMS["aucell_zscores_celltype"]
-    aucell_zscores_condition = PARAMS["aucell_zscores_condition"]
-    binary_matrix = PARAMS["binary_matrix"]
     results_directory = PARAMS["results_directory"]
     plots_directory = PARAMS["plots_directory"]
-    datatype = PARAMS["datatype"]
     umap_pcs = PARAMS["rseurat_umap_pcs"]
     cell_type = PARAMS["rseurat_cell_type"]
     condition = PARAMS["rseurat_condition"]
@@ -62,8 +63,8 @@ def scenic_seurat(infile, outfile):
                                         aucell_zscores_celltype = '%(working_dir)s/%(aucell_zscores_celltype)s',
                                         aucell_zscores_condition = '%(working_dir)s/%(aucell_zscores_condition)s',
                                         binary_matrix = '%(working_dir)s/%(binary_matrix)s',
-                                        results_directory = '%(results_directory)s',
-                                        plots_directory = '%(plots_directory)s',
+                                        results_directory = '%(working_dir)s/%(results_directory)s',
+                                        plots_directory = '%(working_dir)s/%(plots_directory)s',
                                         datatype = '%(datatype)s',
                                         umap_pcs = '%(umap_pcs)s',
                                         cell_type = '%(cell_type)s',
@@ -76,60 +77,60 @@ def scenic_seurat(infile, outfile):
                         > %(outbase)s.log
                         2> %(outbase)s.err """
 
-    P.run(statement, job_threads = PARAMS["rseurat_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["rseurat_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"],job_condaenv=PARAMS["conda_env"])
 
 @follows(scenic_seurat)
-@transform("pyscenic_results.dir/binary_matrix.csv", regex(r"pyscenic_results.dir/binary_matrix.csv"), r"reports.dir/Scenic_analysis_R.html")
+@transform("pyscenic_results.dir/*.dir/binary_matrix.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/binary_matrix.csv"), r"reports.dir/\1.dir/Scenic_analysis_R.html")
 def rscenic(infile, outfile):
     ''' R based analyses for scenic results'''
-    if PARAMS["datatype"] == "raw":
-        outfile = outfile.replace("Scenic_analysis_R.html", "Scenic_analysis_R_raw.html")
-    elif PARAMS["datatype"] == "normalised":
-        outfile = outfile.replace("Scenic_analysis_R.html", "Scenic_analysis_R_normalised.html")
-
+    dir = re.sub("[^\/_]+_matrix.csv", "", infile)
+    if "normalised" in infile:
+        datatype = "normalised"
+        exp_matrix = dir + PARAMS["rscenic_exp_matrix"]
+        exp_matrix = exp_matrix.replace("raw-expression.csv","normalised-expression.csv")
+    elif "raw" in infile:
+        datatype = "raw"
+        exp_matrix = dir + PARAMS["rscenic_exp_matrix"]
     R_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "R")
     outbase = P.snip(outfile, ".html")
+    celltype_zscores = dir + PARAMS["aucell_zscores_celltype"]
+    stim_zscores = dir + PARAMS["aucell_zscores_condition"]
+    celltype_stim_zscores = dir + PARAMS["rscenic_celltype_stim_zscores"]
+    rss_celltype = dir + PARAMS["rscenic_rss_celltype"]
+    rss_stim = dir + PARAMS["rscenic_rss_stim"]
+    rss_celltype_stim = dir + PARAMS["rscenic_rss_celltype_stim"]
+    regulon_genes = dir + PARAMS["rscenic_regulon_genes"]
     working_dir = PARAMS["working_dir"]
     num_workers = PARAMS["rscenic_num_workers"]
     results_directory = PARAMS["results_directory"]
     plots_directory = PARAMS["plots_directory"]
-    datatype = PARAMS["datatype"]
     celltype = PARAMS["rscenic_celltype"]
     condition = PARAMS["rscenic_condition"]
     celltype_condition = PARAMS["rscenic_celltype_condition"]
-    celltype_zscores = PARAMS["aucell_zscores_celltype"]
-    celltype_stim_zscores = PARAMS["rscenic_celltype_stim_zscores"]
-    stim_zscores = PARAMS["aucell_zscores_condition"]
     celltype_zscore_filter_threshold = PARAMS["rscenic_celltype_zscore_filter_threshold"]
     stim_zscore_filter_threshold = PARAMS["rscenic_stim_zscore_filter_threshold"]
     celltype_stim_zscore_filter_threshold = PARAMS["rscenic_celltype_stim_zscore_filter_threshold"]
-    binary_mtx = PARAMS["binary_matrix"]
     annotation_celltype = PARAMS["rscenic_annotation_celltype"]
     annotation_stim = PARAMS["rscenic_annotation_stim"]
     annotation_celltype_stim = PARAMS["rscenic_annotation_celltype_stim"]
     binary_heatmap_cell_annotations = PARAMS["rscenic_binary_heatmap_cell_annotations"]
-    rss_celltype = PARAMS["rscenic_rss_celltype"]
-    rss_stim = PARAMS["rscenic_rss_stim"]
-    rss_celltype_stim = PARAMS["rscenic_rss_celltype_stim"]
     species = PARAMS["rscenic_species"]
-    regulon_genes = PARAMS["rscenic_regulon_genes"]
-    exp_matrix = PARAMS["rscenic_exp_matrix"]
     go_ont_option = PARAMS["rscenic_go_ont_option"]
-    wilcoxon_celltype_top = PARAMS["rscenic_wilcoxon_celltype_top"]
-    wilcoxon_condition_top = PARAMS["rscenic_wilcoxon_condition_top"]
-    ks_celltype_top = PARAMS["rscenic_ks_celltype_top"]
-    ks_condition_top = PARAMS["rscenic_ks_condition_top"]
     pvaluecutoff = PARAMS["rscenic_pvaluecutoff"]
     qvaluecutoff = PARAMS["rscenic_qvaluecutoff"]
     maxGSSize = PARAMS["rscenic_maxGSSize"]
     msigdb_geneset = PARAMS["rscenic_msigdb_geneset"]
+    wilcoxon_celltype_top = PARAMS["rscenic_wilcoxon_celltype_top"]
+    wilcoxon_condition_top = PARAMS["rscenic_wilcoxon_condition_top"]
+    ks_celltype_top = PARAMS["rscenic_ks_celltype_top"]
+    ks_condition_top = PARAMS["rscenic_ks_condition_top"]
 
-    statement = """ Rscript -e "rmarkdown::render('%(R_PATH)s/scenic_seurat.Rmd',
+    statement = """ Rscript -e "rmarkdown::render('%(R_PATH)s/Scenic_analysis_R.Rmd',
                             params = list(  working_dir = '%(working_dir)s',
                                             num_workers = '%(num_workers)s',
                                             datatype = '%(datatype)s',
-                                            results_directory= '%(results_directory)s',
-                                            plots_directory = '%(plots_directory)s',
+                                            results_directory= '%(working_dir)s/%(results_directory)s',
+                                            plots_directory = '%(working_dir)s/%(plots_directory)s',
                                             celltype  = '%(celltype)s',
                                             condition = '%(condition)s',
                                             celltype_condition = '%(celltype_condition)s',
@@ -139,7 +140,7 @@ def rscenic(infile, outfile):
                                             celltype_zscore_filter_threshold = '%(celltype_zscore_filter_threshold)s',
                                             stim_zscore_filter_threshold = '%(stim_zscore_filter_threshold)s',
                                             celltype_stim_zscore_filter_threshold = '%(celltype_stim_zscore_filter_threshold)s',
-                                            binary_mtx = '%(working_dir)s/%(binary_mtx)s',
+                                            binary_mtx = '%(working_dir)s/%(infile)s',
                                             annotation_celltype = '%(working_dir)s/%(annotation_celltype)s',
                                             annotation_stim = '%(working_dir)s/%(annotation_stim)s',
                                             annotation_celltype_stim = '%(working_dir)s/%(annotation_celltype_stim)s',
@@ -163,7 +164,7 @@ def rscenic(infile, outfile):
                             > %(outbase)s.log
                             2> %(outbase)s.err """
 
-    P.run(statement, job_threads = PARAMS["rscenic_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["rscenic_num_workers"], job_memory = '10G', job_queue = PARAMS["cluster_queue"],job_condaenv=PARAMS["conda_env"])
 
 @follows(scenic_seurat,rscenic)
 def full():
