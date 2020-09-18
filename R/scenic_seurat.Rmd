@@ -5,21 +5,21 @@ date: "`r Sys.Date()`"
 output: html_document
 params:
     working_dir: "pyscenic_results.dir"
-    seurat_object: "../../results/Robjects/merged_all_analysed.rds"
-    aucell_scores: "../../results/pyscenic/normalised/merged-all_aucell.csv"
-    aucell_zscores: "../../results/pyscenic/normalised/aucell_zscores.csv"
-    aucell_zscores_celltype: "../../results/pyscenic/normalised/aucell_zscores_merged_all_cluster_annotation.csv"
-    aucell_zscores_condition: "../../results/pyscenic/normalised/aucell_zscores_merged_all_stimulation_annotation.csv"
-    binary_matrix: "../../results/pyscenic/normalised/binary_matrix.csv"
-    results_directory: "../../results/pyscenic_r"
-    plots_directory: "../../plots/pyscenic"
+    seurat_object: "../results/Robjects/GI2792_graft_donor_analysed_v3.rds"
+    aucell_scores: "../results/pyscenic/normalised/GI2792-graft-donor_aucell.csv"
+    aucell_zscores: "../results/pyscenic/normalised/aucell_zscores.csv"
+    aucell_zscores_celltype: "../results/pyscenic/normalised/aucell_zscores_GI2792_graft_donorcells_annotation.csv"
+    aucell_zscores_condition: "None"    # None if not available
+    binary_matrix: "../results/pyscenic/normalised/binary_matrix.csv"
+    results_directory: "../results/pyscenic_r"
+    plots_directory: "../plots/pyscenic"
     datatype: normalised
     umap_pcs: 8    # how many PCs to use for clustering on AUCell scores
-    cell_type: "SCT_snn_res.0.2"
-    condition: "stimulation"
-    clustering_resolution: 0.2
-    stacked_vln_function: "../../Rscripts/functions/stacked_violin.R"
-    reference_condition: "unstim"
+    cell_type: "cell_annotation"
+    condition: "None"      # None if not available
+    clustering_resolution: 0.4
+    stacked_vln_function: "../Rscripts/functions/stacked_violin.R"
+    reference_condition: "None"      # None is not available
     FDR_threshold: 0.001     # FDR threshold for top 10 wilcoxon heatmap
 ---
 
@@ -92,7 +92,7 @@ seurat_object <- SetAssayData(seurat_object, slot = "data", new.data = aucell_zs
 seurat_object <- SetAssayData(seurat_object, slot = "scale.data", new.data = as.matrix(aucell_matrix))
 ```
 
-#### AUCell scores on gene expression UMAP
+#### AUCell scores on gene expression UMAP/tSNE
 
 ```{r Plot_AUCell_scores}
 # Plot AUCell scores on the gene expression UMAP
@@ -124,9 +124,11 @@ for (regulon in rownames(aucell_matrix)) {
 
 # Same results for tSNE
 if ("tsne" %in% names(seurat_object@reductions)) {
-    plot_aucell(seurat_object, regulon, "scale.data", reduction = "tsne")
-    plot_aucell(seurat_object, regulon, "data", name = "aucell_z_score", reduction = "tsne")
-    plot_binary_aucell(seurat_object, regulon, name = "binary_aucell_score", reduction = "tsne")
+    for (regulon in rownames(aucell_matrix)) {
+        plot_aucell(seurat_object, regulon, "scale.data", reduction = "tsne")
+        plot_aucell(seurat_object, regulon, "data", name = "aucell_z_score", reduction = "tsne")
+        plot_binary_aucell(seurat_object, regulon, name = "binary_aucell_score", reduction = "tsne")
+    }
 }
 ```
 
