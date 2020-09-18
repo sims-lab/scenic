@@ -125,6 +125,7 @@ theme_set(theme_bw())
 ```{r, create_dirs}
 results_directory <- params$results_directory
 plots_directory <- params$plots_directory
+working_dir <- params$working_dir
 datatype <- params$datatype
 if (!dir.exists(paste0(plots_directory, "/", datatype))) {
     dir.create(paste0(plots_directory, "/", datatype), recursive = TRUE)
@@ -195,7 +196,7 @@ if(cellInfo_f!= "None" & binary_mtx_f != "None"){
   minPerc <- minPerc
   #annotation_type <- as.character(annotation_type)
   binary_mtx.merge <- merge(binary_mtx,cellInfo, by.x="X1", by.y="cellid")
-  regulon_activity_binarised_celltype <- binary_mtx.merge %>% dplyr::group_by_if(is.factor) %>% select(-c(X1)) %>%
+  regulon_activity_binarised_celltype <- binary_mtx.merge %>% dplyr::group_by_if(is.factor) %>% dplyr::select(-c(X1)) %>%
   summarise_all(.funs = mean) %>% tibble::column_to_rownames(var = {{annotation_type}})
   regulon_activity_binarised_celltype <- t(regulon_activity_binarised_celltype)
   binaryActPerc_subset <- regulon_activity_binarised_celltype[which(rowSums(regulon_activity_binarised_celltype>minPerc)>0),]
@@ -249,11 +250,11 @@ RSS_annotation_plot <- function(annotation_type=params$celltype,rss_f=params$rss
     rss_scores_long <- rss_scores %>%  tidyr:: pivot_longer(-1,names_to = "Regulon", values_to="RSS") %>%    mutate(across(where(is_character),as_factor))%>% group_by(annotation) %>%  dplyr::arrange(desc(RSS), .by_group=T) %>% mutate(order = row_number())
     rss_scores_long$ID <- paste(rss_scores_long$annotation,"_",rss_scores_long$Regulon,sep="")
 
-    rss_scores_long_2 <- rss_scores %>%  tidyr:: pivot_longer(-1,names_to = "Regulon", values_to="RSS") %>% mutate(across(where(is_character),as_factor))%>% group_by(annotation) %>%  dplyr::arrange(desc(RSS), .by_group=T) %>% mutate(order = row_number()) %>%  slice(1:5)
+    rss_scores_long_2 <- rss_scores %>%  tidyr:: pivot_longer(-1,names_to = "Regulon", values_to="RSS") %>% mutate(across(where(is_character),as_factor))%>% group_by(annotation) %>%  dplyr::arrange(desc(RSS), .by_group=T) %>% mutate(order = row_number()) %>% dplyr::slice(1:5)
 
     rss_scores_long_2$label <- rss_scores_long_2$Regulon
     rss_scores_long_2$ID <- paste(rss_scores_long_2$annotation,"_",rss_scores_long_2$Regulon,sep="")
-    rss_scores_long_2 <- rss_scores_long_2 %>% select(ID, label)
+    rss_scores_long_2 <- rss_scores_long_2 %>% dplyr::select(ID, label)
 
     rss_scores_long_final <- merge(rss_scores_long,rss_scores_long_2, by="ID", all.x = T)
 
@@ -279,7 +280,7 @@ Num_active_regulons_annotation <- function(cellInfo_f=params$annotation_celltype
     binary_mtx <- read_csv(file = binary_mtx_f)
     annotation_type <- as.character(annotation_type)
     binary_mtx.merge <- merge(binary_mtx,cellInfo, by.x="X1", by.y="cellid")
-    active_cells_per_regulon <- binary_mtx.merge %>% dplyr::group_by_if(is.factor) %>% select(-c(X1)) %>%
+    active_cells_per_regulon <- binary_mtx.merge %>% dplyr::group_by_if(is.factor) %>% dplyr::select(-c(X1)) %>%
     summarise_all(.funs = sum)
     active_cells_per_regulon_long <- active_cells_per_regulon %>% pivot_longer(-annotation_type, names_to="Regulon", values_to = "N_active_cells")
     nRegulons_per_annotation <- active_cells_per_regulon_long %>% dplyr::group_by(across(1)) %>% summarise(count = sum(N_active_cells>0)) %>% arrange(desc(count))
@@ -306,7 +307,7 @@ Num_annotation_per_regulon <- function(cellInfo_f=params$annotation_celltype,bin
     binary_mtx <- read_csv(file = binary_mtx_f)
     annotation_type <- as.character(annotation_type)
     binary_mtx.merge <- merge(binary_mtx,cellInfo, by.x="X1", by.y="cellid")
-    active_cells_per_regulon <- binary_mtx.merge %>% dplyr::group_by_if(is.factor) %>% select(-c(X1)) %>%
+    active_cells_per_regulon <- binary_mtx.merge %>% dplyr::group_by_if(is.factor) %>% dplyr::select(-c(X1)) %>%
     summarise_all(.funs = sum)
     active_cells_per_regulon_long <- active_cells_per_regulon %>% pivot_longer(-annotation_type, names_to="Regulon", values_to = "N_active_cells")
     n_annotation_active_per_regulon <- active_cells_per_regulon_long %>% group_by(across(2)) %>% summarise(count= sum(N_active_cells>0))
@@ -327,7 +328,7 @@ Num_annotation_per_regulon <- function(cellInfo_f=params$annotation_celltype,bin
 barplot_theme <- list(theme(axis.text.x = element_text(angle=45,hjust = 1,vjust =1, size=5),axis.title = element_text(size=6), plot.title = element_text(size=7)))
 
 
-regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option= params$go_ont_option,pathway_db="enrichGO", maxGSSize=params$maxGSSize, pvalueCutoff=params$pvaluecutoff, qvalueCutoff=params$qvaluecutoff){
+regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option= params$go_ont_option,pathway_db="enrichGO", maxGSSize=params$maxGSSize, pvalueCutoff= as.numeric(params$pvaluecutoff), qvalueCutoff= as.numeric(params$qvaluecutoff)){
 
   regulon_genes <- read_csv(file=regulons_f)  
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note
@@ -390,7 +391,7 @@ enrichplot_theme <- list(theme(legend.title = element_text(size=7), legend.text 
 wilcoxon_pathway_plot <- function(wilcoxon_f=params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=8, plot_width=8, units="in", showCategory=8, stat_test="wilcoxon",pathwaydb="GO_term",res_f= GO_res, plot_row=2,plot_col=2){
 comparcluster_df <- res_f@compareClusterResult
 if(wilcoxon_f != "None"){
-   wilcoxon_top10 <- read_csv(file=paste0(working_dir,results_directory,'/',datatype,'/',wilcoxon_f))
+   wilcoxon_top10 <- read_csv(file=paste0(results_directory,'/',datatype,'/',wilcoxon_f))
    wilcoxon_top10 <- wilcoxon_top10 %>% dplyr::select(regulon,!!sym(annotation_type))
    cc_subset <- merge(comparcluster_df, wilcoxon_top10, by.x="Cluster", by.y="regulon")
    gsize <- as.numeric(sub("/\\d+$", "", as.character(cc_subset$GeneRatio)))
@@ -417,7 +418,7 @@ if(wilcoxon_f != "None"){
 }
 
 
-reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichPathway", maxGSSize=params$maxGSSize,pvalueCutoff=params$pvaluecutoff, qvalueCutoff=params$qvaluecutoff){
+reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichPathway", maxGSSize=params$maxGSSize,pvalueCutoff= as.numeric(params$pvaluecutoff), qvalueCutoff= as.numeric(params$qvaluecutoff)){
 
   regulon_genes <- read_csv(file=regulons_f)  
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note
@@ -477,7 +478,7 @@ reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_d
 
 
 
-kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichKEGG", maxGSSize=params$maxGSSize,pvalueCutoff=params$pvaluecutoff, qvalueCutoff=params$qvaluecutoff){
+kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichKEGG", maxGSSize=params$maxGSSize,pvalueCutoff= as.numeric(params$pvaluecutoff), qvalueCutoff= as.numeric(params$qvaluecutoff)){
 
   regulon_genes <- read_csv(file=regulons_f)  
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note
@@ -535,7 +536,7 @@ kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="e
 }
 
 
-msigdb_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enricher", maxGSSize=params$maxGSSize, pvalueCutoff=params$pvaluecutoff, qvalueCutoff=params$qvaluecutoff,msigdb_geneset=params$msigdb_geneset){
+msigdb_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enricher", maxGSSize=params$maxGSSize, pvalueCutoff= as.numeric(params$pvaluecutoff), qvalueCutoff= as.numeric(params$qvaluecutoff),msigdb_geneset=params$msigdb_geneset){
 
   regulon_genes <- read_csv(file=regulons_f)  
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note
@@ -581,7 +582,7 @@ msigdb_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db=
 
 rss_pathway_plot <- function(rss_f=params$rss_celltype,annotation_type= params$celltype, plot_height=8, plot_width=8, units="in", showCategory=8, pathwaydb="GO_term",res_f= GO_res, plot_row=2,plot_col=2){
   if(rss_f != "None"){
-    comparcluster_df <- Go_res@compareClusterResult
+    comparcluster_df <- res_f@compareClusterResult
     rss_scores <- read_csv(file=rss_f)
     annotation_type <- as.character(annotation_type)
     colnames(rss_scores)[1] <- "annotation"
@@ -723,7 +724,7 @@ RSS_annotation_plot(annotation_type = params$condition,rss_f = params$rss_stim,u
 
 ```{r, fig.height=8, fig.width=10}
 # annotation_type is used to name saved plots and RDS objects, can be anything the user wants
-RSS_annotation_plot(annotation_type = params$celltype_condition,rss_f = params$rss_celltype_stim,units = "in",plot_height = 8,plot_width = 10)
+RSS_annotation_plot(annotation_type = params$celltype_condition,rss_f = params$rss_celltype_stim,units = "in",plot_height = 12,plot_width = 12)
 ```
 
 # Binary Regulon activity summary
@@ -768,7 +769,7 @@ Num_annotation_per_regulon(cellInfo_f = params$annotation_celltype_stim,binary_m
 
 ```{r}
 if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  GO_res <- regulon_pathway_enrichment(regulons_f = params$regulon_genes, ont_option = params$go_ont_option,pathway_db = "enrichGO",maxGSSize = params$maxGSSize,pvalueCutoff = params$pvaluecutoff,qvalueCutoff = params$qvaluecutoff)
+  GO_res <- regulon_pathway_enrichment(regulons_f = params$regulon_genes, ont_option = params$go_ont_option,pathway_db = "enrichGO",maxGSSize = params$maxGSSize)
 }else{
   print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
 }
@@ -779,7 +780,7 @@ if(params$regulon_genes!="None" & params$exp_matrix !="None"){
 
 ```{r, fig.height=7, fig.width=8}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=10, plot_width=11, units="in", showCategory = 7,stat_test = "wilcoxon",pathwaydb = "GO_term",res_f = GO_res, plot_row = 2,plot_col = 2)
+wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=10, plot_width=11, units="in", showCategory = 7,stat_test = "wilcoxon",pathwaydb = "GO_term",res_f = GO_res, plot_row = 5,plot_col = 4)
 
 ```
 
@@ -796,7 +797,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$wilcoxon_condition_top,annotation_type=
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type ="test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "GO_term",res_f = GO_res,plot_col = 2,plot_row = 2)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type ="test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "GO_term",res_f = GO_res,plot_col = 5,plot_row = 4)
 ```
 
 
@@ -814,7 +815,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$ks_condition_top, annotation_type = "te
 
 ```{r, fig.height=8,fig.width=10}
 
-rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "GO_term",res_f = GO_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 2,plot_col = 4)
+rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "GO_term",res_f = GO_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 5,plot_col = 4)
 
 
 
@@ -831,9 +832,9 @@ rss_pathway_plot(rss_f = params$rss_stim,annotation_type = params$condition,show
 ```
 ### Top 10 RSS Regulons (celltype + condition)
 
-```{r, fig.height=8,fig.width=10}
+```{r, fig.height=8,fig.width=10, eval=F}
 
-rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "GO_term",res_f = GO_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 2,plot_col = 4)
+rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "GO_term",res_f = GO_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 7,plot_col = 5)
 
 
 
@@ -858,7 +859,7 @@ if(params$regulon_genes!="None" & params$exp_matrix !="None"){
 
 ```{r, fig.height=8, fig.width=8}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=10, plot_width=11, units="in", showCategory = 7,stat_test = "wilcoxon",pathwaydb = "Reactome",res_f = Reactome_res,plot_row = 0,plot_col = 4)
+wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=10, plot_width=11, units="in", showCategory = 7,stat_test = "wilcoxon",pathwaydb = "Reactome",res_f = Reactome_res,plot_row = 5,plot_col = 4)
 
 ```
 
@@ -875,7 +876,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$wilcoxon_condition_top,annotation_type=
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type = "test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "Reactome",res_f = Reactome_res)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type = "test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "Reactome",res_f = Reactome_res,plot_row = 5,plot_col = 4)
 ```
 
 
@@ -892,7 +893,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$ks_condition_top, annotation_type ="tes
 
 ```{r, fig.height=8,fig.width=10}
 
-rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "Reactome",res_f = Reactome_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 2,plot_col = 4)
+rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "Reactome",res_f = Reactome_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 5,plot_col = 4)
 
 
 
@@ -909,9 +910,9 @@ rss_pathway_plot(rss_f = params$rss_stim,annotation_type = params$condition,show
 ```
 ### Top 10 RSS Regulons (celltype + condition)
 
-```{r, fig.height=8,fig.width=10}
+```{r, fig.height=8,fig.width=10, eval=F}
 
-rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "Reactome",res_f = Reactome_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 2,plot_col = 4)
+rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "Reactome",res_f = Reactome_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 7,plot_col = 5)
 
 
 
@@ -925,7 +926,7 @@ rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$cellt
 
 ```{r}
 if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  msigdb_c2_res <- msigdb_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enricher",maxGSSize = params$maxGSSize, pvalueCutoff = params$pvaluecutoff, qvalueCutoff = params$qvaluecutoff,msigdb_geneset = params$msigdb_geneset)
+  msigdb_c2_res <- msigdb_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enricher",maxGSSize = params$maxGSSize, msigdb_geneset = params$msigdb_geneset)
 }else{
   print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
 }
@@ -936,7 +937,7 @@ if(params$regulon_genes!="None" & params$exp_matrix !="None"){
 
 ```{r, fig.height=7, fig.width=8}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=10, plot_width=11, units="in", showCategory = 7,stat_test = "wilcoxon",pathwaydb = "msigdb_curated",res_f = msigdb_c2_res, plot_row = 2,plot_col = 2)
+wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=10, plot_width=11, units="in", showCategory = 7,stat_test = "wilcoxon",pathwaydb = "msigdb_curated",res_f = msigdb_c2_res, plot_row = 5,plot_col = 4)
 
 ```
 
@@ -953,7 +954,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$wilcoxon_condition_top,annotation_type=
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type ="test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_col = 2,plot_row = 2)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type ="test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_col = 5,plot_row = 4)
 ```
 
 
@@ -970,7 +971,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$ks_condition_top, annotation_type = "te
 
 ```{r, fig.height=8,fig.width=10}
 
-rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 2,plot_col = 4)
+rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 5,plot_col = 4)
 
 
 
@@ -987,9 +988,9 @@ rss_pathway_plot(rss_f = params$rss_stim,annotation_type = params$condition,show
 ```
 ### Top 10 RSS Regulons (celltype + condition)
 
-```{r, fig.height=8,fig.width=10}
+```{r, fig.height=8,fig.width=10, eval=F}
 
-rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 2,plot_col = 4)
+rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 7,plot_col = 4)
 
 
 
@@ -1000,7 +1001,7 @@ rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$cellt
 
 ```{r}
 if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  KEGG_res <- kegg_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichKEGG",maxGSSize = params$maxGSSize,pvalueCutoff = params$pvaluecutoff, qvalueCutoff = params$qvaluecutoff)
+  KEGG_res <- kegg_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichKEGG",maxGSSize = params$maxGSSize)
 }else{
   print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
 }
@@ -1012,7 +1013,7 @@ if(params$regulon_genes!="None" & params$exp_matrix !="None"){
 
 ```{r, fig.height=8, fig.width=8}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=10, plot_width=11, units="in", showCategory = 7,stat_test = "wilcoxon",pathwaydb = "KEGG",res_f = KEGG_res)
+wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=10, plot_width=11, units="in", showCategory = 7,stat_test = "wilcoxon",pathwaydb = "KEGG",res_f = KEGG_res,plot_row = 5,plot_col = 4)
 
 ```
 
@@ -1029,7 +1030,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$wilcoxon_condition_top,annotation_type=
 
 ```{r,fig.height=4, fig.width=6}
 # annotation_type is the column names from wilcoxon or KS results file with cell type or condition annotation
-wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type = "test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "KEGG",res_f = KEGG_res)
+wilcoxon_pathway_plot(wilcoxon_f =params$ks_celltype_top, annotation_type = "test", test_type="one_vs_all", plot_height=7, plot_width=10, units="in", showCategory = 7,stat_test = "KS_celltype",pathwaydb = "KEGG",res_f = KEGG_res,plot_row = 5,plot_col = 4)
 ```
 
 
@@ -1045,7 +1046,7 @@ wilcoxon_pathway_plot(wilcoxon_f =params$ks_condition_top, annotation_type ="tes
 
 ```{r, fig.height=8,fig.width=10}
 
-rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "KEGG",res_f = KEGG_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 2,plot_col = 4)
+rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "KEGG",res_f = KEGG_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 5,plot_col = 4)
 
 
 
@@ -1063,9 +1064,9 @@ rss_pathway_plot(rss_f = params$rss_stim,annotation_type = params$condition,show
 
 ### Top 10 RSS Regulons (celltype + condition)
 
-```{r, fig.height=8,fig.width=10}
+```{r, fig.height=8,fig.width=10,eval=F}
 
-rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "KEGG",res_f = KEGG_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 2,plot_col = 4)
+rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "KEGG",res_f = KEGG_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 7,plot_col = 4)
 
 
 
