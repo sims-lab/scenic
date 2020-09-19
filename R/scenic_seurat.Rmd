@@ -504,7 +504,7 @@ write_csv(wilcoxon_results_celltype[, c(1:4, 7, 5, 6)], paste0(results_directory
 Idents(seurat_object) <- params$cell_type
 wilcoxon_markers_list <- list()
 for (identity in as.character(unique(Idents(seurat_object)))) {
-    markers <- FindMarkers(seurat_object, slot = "scale.data", ident.1 = identity, verbose = FALSE)
+    markers <- FindMarkers(seurat_object, slot = "scale.data", ident.1 = identity, only.pos = TRUE, verbose = FALSE)
     markers$test_cell_type <- identity
     markers <- rownames_to_column(markers, var = "regulon")
     wilcoxon_markers_list[[identity]] <- markers
@@ -518,7 +518,7 @@ if (params$condition != "None") {
     test_identities <- setdiff(as.character(unique(Idents(seurat_object))), params$reference_condition)
     wilcoxon_markers_list <- list()
     for (identity in test_identities) {
-        markers <- FindMarkers(seurat_object, slot = "scale.data", ident.1 = identity, ident.2 = params$reference_condition, verbose = FALSE)
+        markers <- FindMarkers(seurat_object, slot = "scale.data", ident.1 = identity, ident.2 = params$reference_condition, only.pos = TRUE, verbose = FALSE)
         markers$test_condition <- identity
         markers <- rownames_to_column(markers, var = "regulon")
         wilcoxon_markers_list[[identity]] <- markers
@@ -532,7 +532,7 @@ if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
     wilcoxon_markers_list <- list()
     for (identity in as.character(unique(Idents(seurat_object)))) {
-        markers <- FindMarkers(seurat_object, slot = "scale.data", ident.1 = identity, verbose = FALSE)
+        markers <- FindMarkers(seurat_object, slot = "scale.data", ident.1 = identity, only.pos = TRUE, verbose = FALSE)
         markers$test_condition <- identity
         markers <- rownames_to_column(markers, var = "regulon")
         wilcoxon_markers_list[[identity]] <- markers
