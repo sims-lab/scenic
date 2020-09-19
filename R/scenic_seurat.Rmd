@@ -167,17 +167,23 @@ plot_violin_aucell <- function(seurat_object, feature, group_by, split_by = "Non
     Idents(seurat_object) <- group_by
     if (split_by == "None") {
         pdf(paste0(plots_directory, "/", datatype, "/", feature, "_", name, ".pdf"))
-        print(VlnPlot(seurat_object, features = feature, assay = "scenic", slot = "scale.data",
-            pt.size = 0.25) +
-                labs(y = "AUCell score") +
-              theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 0, hjust = 0.5)) +
-              NoLegend())
+        print(VlnPlot(seurat_object, features = feature, assay = "scenic", slot = "scale.data", pt.size = 0.25) +
+                  labs(y = "AUCell score") +
+                  theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 0, hjust = 0.5),
+                        axis.text = element_text(size = 14, colour = "black"),
+                        axis.title.y = element_text(size = 16, colour = "black"),
+                        plot.title = element_text(size = 18)) +
+                  NoLegend())
     } else {
         pdf(paste0(plots_directory, "/", datatype, "/", feature, "_", split_by, "_", name, ".pdf"))
         print(VlnPlot(seurat_object, features = feature, split.by = split_by, assay = "scenic", slot = "scale.data",
         pt.size = 0.25) +
             labs(y = "AUCell score") +
-            theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 0, hjust = 0.5)))
+            theme(axis.title.x = element_blank(), axis.text.x = element_text(angle = 0, hjust = 0.5),
+                  axis.text = element_text(size = 14, colour = "black"),
+                  axis.title.y = element_text(size = 16, colour = "black"),
+                  plot.title = element_text(size = 18)) +
+            NoLegend())
     }
     dev.off()
 }
@@ -504,7 +510,7 @@ for (identity in as.character(unique(Idents(seurat_object)))) {
     wilcoxon_markers_list[[identity]] <- markers
 }
 wilcoxon_markers_celltype <- bind_rows(wilcoxon_markers_list)
-write_csv(wilcoxon_markers_celltype, paste0(results_directory, "/", datatype, "/", "wilcoxon_cluster_comparison_FindMarkers.csv"))
+write_csv(wilcoxon_markers_celltype, paste0(results_directory, "/", datatype, "/", "wilcoxon_celltype_comparison_FindMarkers.csv"))
 
 # Condition - test vs. reference
 if (params$condition != "None") {
@@ -546,7 +552,7 @@ ks_results_celltype$FDR <- p.adjust(ks_results_celltype$pvalue, method = "BH")
 write_csv(ks_results_celltype[, c(1:4, 7, 5, 6)], paste0(results_directory, "/", datatype, "/", "ks_celltype_comparison.csv"))
 ```
 
-#### Heatmap of top 10 regulons per group based on Wilcoxon results
+#### Top 10 regulons per group based on Wilcoxon/KS results
 
 ```{r Top10_wilcoxon_KS}
 # Using Wilcoxon output from the FindMarkers function so there is some pre-filtering
@@ -556,7 +562,7 @@ top10_wilcoxon_celltype <- wilcoxon_markers_celltype %>%
     arrange(desc(avg_diff)) %>%
     slice_head(n = 10) %>%
     ungroup()
-write_csv(top10_wilcoxon_celltype, paste0(results_directory, "/", datatype, "/", "wilcoxon_celltype_top10.csv"))
+write_csv(top10_wilcoxon_celltype, paste0(results_directory, "/", datatype, "/", "wilcoxon_celltype_top10_FindMarkers.csv"))
 
 # The KS test has no pre-filtering
 top10_ks_celltype <- ks_results_celltype %>%
@@ -574,7 +580,7 @@ if (params$condition != "None") {
         arrange(desc(avg_diff)) %>%
         slice_head(n = 10) %>%
         ungroup()
-    write_csv(top10_wilcoxon_condition_reference, paste0(results_directory, "/", datatype, "/", "wilcoxon_condition_top10.csv"))
+    write_csv(top10_wilcoxon_condition_reference, paste0(results_directory, "/", datatype, "/", "wilcoxon_condition_top10_FindMarkers.csv"))
 
      top10_ks_condition <- ks_results_condition %>%
         group_by(test) %>%
