@@ -42,7 +42,7 @@ rscenic:
     rss_celltype_stim: Glia_celltype_stim_annotations_RSS.csv # RSS scores per regulon for celltype_stim or "None"
     species: fly # fly ;human ,mouse or None
     regulon_genes: regulons.csv #regulon files generatated from Pyscenic pipeline or "None"
-    exp_matrix: Thirst2Glia_filtered-expression.csv # filtered-raw-expression.csv exp matrix generated in step1 of pipeline for background for pathway analysis or "None"
+    exp_matrix: Thirst2Glia_filtered-expression.csv # *_filtered-expression.csv exp matrix generated in step1 of pipeline for background for pathway analysis or "None"
     go_ont_option: BP # "BP", "MF" , "CC" or "ALL" for all three. Default is "MF" in ClusterProfiler
     wilcoxon_celltype_top: wilcoxon_celltype_top10.csv #or "None"
     wilcoxon_condition_top: wilcoxon_condition_top10.csv # or "None"
