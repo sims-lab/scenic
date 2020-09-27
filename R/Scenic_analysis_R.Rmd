@@ -183,7 +183,7 @@ zscore_heatmap <- function(zscores_df,annotation_type=params$celltype ,filter_th
 }
 
 binary_celltype_perc_heatmap <- function(cellInfo_f=params$annotation_celltype, binary_mtx_f=params$binary_mtx, minPerc=0.85, annotation_type ="celltype",plot_height=7,plot_width=10, units="in", cluster_rows=T,cluster_cols=T){
-if(cellInfo_f!= "None" & binary_mtx_f != "None"){
+if(annotation_type != "None"){
   cellInfo <- read.csv(cellInfo_f)
 
   rownames(cellInfo) <- cellInfo$cellid
@@ -217,33 +217,23 @@ if(cellInfo_f!= "None" & binary_mtx_f != "None"){
 
 }
 
+
+
 binary_auc_heatmap <- function(binary_mtx_f= params$binary_mtx, annotation_col_f=params$binary_heatmap_cell_annotations,plot_height=9, plot_width=12){
-  if(annotation_col_f !="None" & binary_mtx_f != "None"){
-    binary_mtx <- read_csv(file =binary_mtx_f)
-    binary_mtx <- binary_mtx %>% tibble::column_to_rownames(var= "X1")
-    annotation_col <- read.csv(file=annotation_col_f)
-    annotation_col <- annotation_col %>% column_to_rownames(var="cellid")
-    plot_1 <- pheatmap::pheatmap((t(binary_mtx)), fontsize = 6, color = colorRampPalette((brewer.pal(n = 9, name ="Greys")))(10)
-                   ,treeheight_row=10, treeheight_col=10, border_color=NA, clustering_method = "ward.D2", show_rownames = T,fontsize_row =8,   scale="none", show_colnames = F, annotation_col = annotation_col, legend=F)
-    save_pheatmap_pdf(plot_1, filename = paste0(plots_directory,'/',datatype,'/','Binary_RegulonActivity_allcells','_heatmap.pdf'),     width=plot_width,height= plot_height)
-    saveRDS(plot_1, file = paste0(plots_directory,'/',datatype,'/','Binary_RegulonActivity_allcells','_heatmap.rds'))
-  print(plot_1)
-  } else{
-    print("heatmap without celltype annotations column")
-    plot_1 <- pheatmap::pheatmap((t(binary_mtx)), fontsize = 6, color = colorRampPalette((brewer.pal(n = 9, name ="Greys")))(10)
-                   ,treeheight_row=10, treeheight_col=10, border_color=NA, clustering_method = "ward.D2", show_rownames = T,fontsize_row =8, scale="none", show_colnames = F, legend=F)
-    plot_path <- plot_path
-    save_pheatmap_pdf(plot_1, filename = paste0(plot_path,'Binary_RegulonActivity_allcells','_heatmap.pdf'),     width=plot_width,height= plot_height)
-    saveRDS(plot_1, file = paste0(plot_path,'Binary_RegulonActivity_allcells','_heatmap.rds'))
-    print(plot_1)
-
-  }
-
+ binary_mtx <- read_csv(file =binary_mtx_f)
+ binary_mtx <- binary_mtx %>% tibble::column_to_rownames(var= "X1")
+ annotation_col <- read.csv(file=annotation_col_f)
+ annotation_col <- annotation_col %>% column_to_rownames(var="cellid")
+ plot_1 <- pheatmap::pheatmap((t(binary_mtx)), fontsize = 6, color = colorRampPalette((brewer.pal(n = 9, name ="Greys")))(10)
+                   ,treeheight_row=10, treeheight_col=10, border_color=NA, clustering_method = "ward.D2", show_rownames = T,fontsize_row =8,      scale="none", show_colnames = F, annotation_col = annotation_col, legend=F)
+ save_pheatmap_pdf(plot_1, filename = paste0(plots_directory,'/',datatype,'/','Binary_RegulonActivity_allcells','_heatmap.pdf'),     width=plot_width,height= plot_height)
+ saveRDS(plot_1, file = paste0(plots_directory,'/',datatype,'/','Binary_RegulonActivity_allcells','_heatmap.rds'))
+ print(plot_1)
+ 
 }
 
-
 RSS_annotation_plot <- function(annotation_type=params$celltype,rss_f=params$rss_celltype, units="in", plot_height=5, plot_width=7){
-  if(rss_f != "None" & annotation_type!="None"){
+  if(annotation_type!="None"){
     rss_scores <- read_csv(file=rss_f)
     annotation_type <- as.character(annotation_type)
     colnames(rss_scores)[1] <- "annotation"
@@ -273,7 +263,7 @@ RSS_annotation_plot <- function(annotation_type=params$celltype,rss_f=params$rss
 }
 
 Num_active_regulons_annotation <- function(cellInfo_f=params$annotation_celltype,binary_mtx_f=params$binary_mtx, annotation_type=params$celltype, units="in", plot_height=3, plot_width=9){
-  if(cellInfo_f!="None"){
+  if(annotation_type !="None"){
     cellInfo <- read.csv(cellInfo_f)
     rownames(cellInfo) <- cellInfo$cellid
     cellInfo[,2] <- as.factor(cellInfo[,2])
@@ -294,13 +284,13 @@ Num_active_regulons_annotation <- function(cellInfo_f=params$annotation_celltype
     print(p1)
 
   }else{
-    print("cell type annotation and binary auc matrix files not provided")
+    print("cell type annotation files not provided")
   }
 
 }
 
 Num_annotation_per_regulon <- function(cellInfo_f=params$annotation_celltype,binary_mtx_f=params$binary_mtx, annotation_type=params$celltype, units="in", plot_height=3, plot_width=9){
-  if(cellInfo_f != "None"){
+  if(annotation_type != "None"){
     cellInfo <- read.csv(cellInfo_f)
     rownames(cellInfo) <- cellInfo$cellid
     cellInfo[,2] <- as.factor(cellInfo[,2])
@@ -320,7 +310,7 @@ Num_annotation_per_regulon <- function(cellInfo_f=params$annotation_celltype,bin
     print(p2)
 
   } else{
-   print("cell type annotation and binary auc matrix files not provided")
+   print("cell type annotation files not provided")
   }
 
 }
@@ -390,7 +380,7 @@ enrichplot_theme <- list(theme(legend.title = element_text(size=7), legend.text 
 
 wilcoxon_pathway_plot <- function(wilcoxon_f=params$wilcoxon_celltype_top,annotation_type="test_cell_type", test_type="one_vs_all", plot_height=8, plot_width=8, units="in", showCategory=8, stat_test="wilcoxon",pathwaydb="GO_term",res_f= GO_res, plot_row=2,plot_col=2){
 comparcluster_df <- res_f@compareClusterResult
-if(wilcoxon_f != "None"){
+if(annotation_type != "None"){
    wilcoxon_top10 <- read_csv(file=paste0(results_directory,'/',datatype,'/',wilcoxon_f))
    wilcoxon_top10 <- wilcoxon_top10 %>% dplyr::select(regulon,!!sym(annotation_type))
    cc_subset <- merge(comparcluster_df, wilcoxon_top10, by.x="Cluster", by.y="regulon")
@@ -412,7 +402,7 @@ if(wilcoxon_f != "None"){
     saveRDS(p1, file =paste0(plots_directory,'/',datatype,'/',pathwaydb, '_plot','_',stat_test,'_top10_',annotation_type,'_',test_type,'.rds'))
     print(p1)
 }else{
-  print("Wilcoxon/KS files and cell or condition column name in results file not inputted")
+  print("Wilcoxon/KS files cell or condition column name in results file not inputted in function")
 }
 
 }
@@ -581,7 +571,7 @@ msigdb_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db=
 }
 
 rss_pathway_plot <- function(rss_f=params$rss_celltype,annotation_type= params$celltype, plot_height=8, plot_width=8, units="in", showCategory=8, pathwaydb="GO_term",res_f= GO_res, plot_row=2,plot_col=2){
-  if(rss_f != "None"){
+  if(annotation_type != "None"){
     comparcluster_df <- res_f@compareClusterResult
     rss_scores <- read_csv(file=rss_f)
     annotation_type <- as.character(annotation_type)
@@ -605,7 +595,7 @@ rss_pathway_plot <- function(rss_f=params$rss_celltype,annotation_type= params$c
     saveRDS(p1, file =paste0(plots_directory,'/',datatype,'/',pathwaydb, '_plot','_','RSS_Scores','_top10_',annotation_type,'.rds'))
     print(p1)
   }else{
-    print("RSS files not inputted")
+    print("annotation type not inputted")
   }
 
 }
@@ -818,11 +808,8 @@ if(params$celltype_condition != "None"){
 ## GO Biological Process
 
 ```{r}
-if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  GO_res <- regulon_pathway_enrichment(regulons_f = params$regulon_genes, ont_option = params$go_ont_option,pathway_db = "enrichGO",maxGSSize = params$maxGSSize)
-}else{
-  print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
-}
+GO_res <- regulon_pathway_enrichment(regulons_f = params$regulon_genes, ont_option = params$go_ont_option,pathway_db = "enrichGO",maxGSSize = params$maxGSSize)
+
 
 ```
 
@@ -896,7 +883,7 @@ if(params$condition != "None"){
 ```
 ### Top 10 RSS Regulons (celltype + condition)
 
-```{r, fig.height=8,fig.width=10, eval=F}
+```{r, fig.height=8,fig.width=10, eval=T}
 if(params$celltype_condition != "None"){
   rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "GO_term",res_f = GO_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 7,plot_col = 5)
 }
@@ -910,13 +897,7 @@ if(params$celltype_condition != "None"){
 ## Reactome pathways
 
 ```{r}
-
-if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  Reactome_res <- reactome_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichPathway",maxGSSize = params$maxGSSize)
-}else{
-  print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
-}
-
+Reactome_res <- reactome_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichPathway",maxGSSize = params$maxGSSize)
 
 ```
 
@@ -991,7 +972,7 @@ if(params$condition != "None") {
 ```
 ### Top 10 RSS Regulons (celltype + condition)
 
-```{r, fig.height=8,fig.width=10, eval=F}
+```{r, fig.height=8,fig.width=10, eval=T}
 if(params$celltype_condition != "None"){
   rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "Reactome",res_f = Reactome_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 7,plot_col = 5)
 
@@ -1008,11 +989,8 @@ if(params$celltype_condition != "None"){
 ## MsigDB C2 curated pathways
 
 ```{r}
-if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  msigdb_c2_res <- msigdb_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enricher",maxGSSize = params$maxGSSize, msigdb_geneset = params$msigdb_geneset)
-}else{
-  print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
-}
+msigdb_c2_res <- msigdb_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enricher",maxGSSize = params$maxGSSize, msigdb_geneset = params$msigdb_geneset)
+
 
 ```
 
@@ -1083,7 +1061,7 @@ if(params$condition != "None"){
 ```
 ### Top 10 RSS Regulons (celltype + condition)
 
-```{r, fig.height=8,fig.width=10, eval=F}
+```{r, fig.height=8,fig.width=10, eval=T}
 if(params$celltype_condition != "None") {
   rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "msigdb_curated",res_f = msigdb_c2_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 7,plot_col = 4)
 
@@ -1097,12 +1075,7 @@ if(params$celltype_condition != "None") {
 ## KEGG pathways
 
 ```{r}
-if(params$regulon_genes!="None" & params$exp_matrix !="None"){
-  KEGG_res <- kegg_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichKEGG",maxGSSize = params$maxGSSize)
-}else{
-  print("Regulon genes csv file and/or filtered-expression matrix for background genes not provided for pathway analysis to proceed")
-}
-
+KEGG_res <- kegg_pathway_enrichment(regulons_f = params$regulon_genes,pathway_db = "enrichKEGG",maxGSSize = params$maxGSSize)
 
 ```
 
@@ -1176,7 +1149,7 @@ if(params$condition != "None"){
 
 ### Top 10 RSS Regulons (celltype + condition)
 
-```{r, fig.height=8,fig.width=10,eval=F}
+```{r, fig.height=8,fig.width=10,eval=T}
 if(params$celltype_condition != "None"){
   rss_pathway_plot(rss_f = params$rss_celltype_stim,annotation_type = params$celltype_condition,showCategory = 8,pathwaydb = "KEGG",res_f = KEGG_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 7,plot_col = 4)
 
