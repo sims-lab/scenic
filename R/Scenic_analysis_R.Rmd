@@ -114,7 +114,7 @@ library(foreach)
 library(msigdbr)
 library(org.Mm.eg.db)
 library(org.Hs.eg.db)
-library(org.Dm.eg.db)
+try({library(org.Dm.eg.db)})
 
 registerDoMC(cores=params$num_workers)
 theme_set(theme_bw())
@@ -330,7 +330,7 @@ barplot_theme <- list(theme(axis.text.x = element_text(angle=45,hjust = 1,vjust 
 
 regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option= params$go_ont_option,pathway_db="enrichGO", maxGSSize=params$maxGSSize, pvalueCutoff= as.numeric(params$pvaluecutoff), qvalueCutoff= as.numeric(params$qvaluecutoff)){
 
-  regulon_genes <- read_csv(file=regulons_f)  
+  regulon_genes <- read_csv(file=regulons_f)
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note
 
 
@@ -420,7 +420,7 @@ if(wilcoxon_f != "None"){
 
 reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichPathway", maxGSSize=params$maxGSSize,pvalueCutoff= as.numeric(params$pvaluecutoff), qvalueCutoff= as.numeric(params$qvaluecutoff)){
 
-  regulon_genes <- read_csv(file=regulons_f)  
+  regulon_genes <- read_csv(file=regulons_f)
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note
 
 
@@ -480,7 +480,7 @@ reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_d
 
 kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enrichKEGG", maxGSSize=params$maxGSSize,pvalueCutoff= as.numeric(params$pvaluecutoff), qvalueCutoff= as.numeric(params$qvaluecutoff)){
 
-  regulon_genes <- read_csv(file=regulons_f)  
+  regulon_genes <- read_csv(file=regulons_f)
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note
 
 
@@ -538,7 +538,7 @@ kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="e
 
 msigdb_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="enricher", maxGSSize=params$maxGSSize, pvalueCutoff= as.numeric(params$pvaluecutoff), qvalueCutoff= as.numeric(params$qvaluecutoff),msigdb_geneset=params$msigdb_geneset){
 
-  regulon_genes <- read_csv(file=regulons_f)  
+  regulon_genes <- read_csv(file=regulons_f)
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note
 
 
