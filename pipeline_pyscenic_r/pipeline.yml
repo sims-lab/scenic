@@ -3,7 +3,6 @@
 cluster:
     queue: all.q
 conda_env: python3-env
-#datatype: raw    # can be raw or normalised
 working_dir: /ifs/research-groups/cncb/proj021/analyses/Pyscenic_glia/scenic
 results_directory: pyscenic_results.dir/pyscenic_r
 plots_directory: plots.dir/pyscenic_r
@@ -25,7 +24,6 @@ rseurat:
 
 rscenic:
     num_workers: 15 # Number of cores
-    datatype: raw # raw or normalised
     celltype: celltype_ann # column name for cell celltype annotations in files or "None"
     condition: stim # column name for condition annotation in files or "None"
     celltype_condition: celltype_stim # column name for celltype_condition columns in files or "None"
