@@ -1,0 +1,55 @@
+# YAML file for pipeline_pyscenic_r.py
+
+cluster:
+    queue: batchq
+
+conda_env: renv
+#datatype: raw    # can be raw or normalised
+working_dir: /t1-data/user/lgarner/Analysis/10x/190830_MAIT_stimulation/Gene_expression/pyscenic/200923_pyscenic_log1p_normalised
+results_directory: pyscenic_results.dir/pyscenic_r
+plots_directory: plots.dir/pyscenic_r
+binary_matrix: binary_matrix.csv
+aucell_scores: merged-all_aucell.csv
+aucell_zscores: aucell_zscores.csv
+aucell_zscores_celltype: aucell_zscores_merged_all_cluster_annotation.csv
+aucell_zscores_condition: aucell_zscores_merged_all_stimulation_annotation.csv
+
+rseurat:
+    threads: 15    # number of cores
+    seurat_object: data.dir/merged_all_analysed.rds    # analysed Seurat object
+    umap_pcs: 8    # how many PCs to use for clustering on AUCell scores
+    cell_type: SCT_snn_res.0.3    # column in Seurat metadata containing cluster information
+    condition: stimulation    # column in Seurat metadata containing condition information or "None"
+    clustering_resolution: 0.3    # resolution of clustering to use on AUCell scores
+    stacked_vln_function: R/stacked_violin.R    # location of function for generating a stacked violin
+    reference_condition: unstim    # reference condition for pairwise comparisons
+    FDR_threshold: 0.01   # FDR threshold for top 10 wilcoxon heatmap
+
+rscenic:
+    num_workers: 15    # number of cores
+    celltype: SCT_snn_res.0.5    # column name for celltype annotations in files or "None"
+    condition: stimulation    # column name for condition annotation in files or "None"
+    celltype_condition: None    # column name for celltype_condition columns in files or "None"
+    celltype_stim_zscores: None    # Z scores based on auc for celltype_stim joint or "None"
+    celltype_zscore_filter_threshold: 2    # Z score filter threshold for celltype specific scores for heatmap or "None"
+    stim_zscore_filter_threshold: 2    # Zscore filter threshold for condition specific scores for heatmap or "None"
+    celltype_stim_zscore_filter_threshold: None    # Zscore filter threshold for celltype + condition specific  scores for heatmap or "None"
+    annotation_celltype: data.dir/merged_all_cluster_annotation.csv    # csv file with cellid & celltype annotations for each cell or "None"
+    annotation_stim: data.dir/merged_all_stimulation_annotation.csv    # csv file with cellid & condition annotation for each cell or "None"
+    annotation_celltype_stim: None    # csv file with cellid & celltype_stim annotation for each cell or "None"
+    binary_heatmap_cell_annotations: data.dir/merged_all_cluster_annotation.csv    # csv file with cellid and annotation data per cell for binary all cells heatmap or "None"
+    rss_celltype: merged_all_cluster_annotation_RSS.csv    # RSS scores per regulon for celltype or "None"
+    rss_stim: merged_all_stimulation_annotation_RSS.csv    # RSS scores per regulon for condition or "None"
+    rss_celltype_stim: None    # RSS scores per regulon for celltype_condition or "None"
+    species: human    # fly, human, mouse or None
+    regulon_genes: regulons.csv    # regulon file generatated from pyscenic_pipeline.py or "None"
+    exp_matrix: merged-all_filtered-expression.csv    # *_filtered-expression.csv exp matrix generated in pipeline_pyscenic.py for background of pathway analysis or "None"
+    go_ont_option: BP    # "BP", "MF", "CC" or "ALL" for all three. Default is "MF" in ClusterProfiler
+    wilcoxon_celltype_top: wilcoxon_celltype_top10.csv    # or "None"
+    wilcoxon_condition_top: wilcoxon_condition_top10.csv    # or "None"
+    ks_celltype_top: ks_celltype_top10.csv    # or "None"
+    ks_condition_top: ks_condition_top10.csv    # or "None"
+    pvaluecutoff: 0.05    # pathway enrichment cutoffs
+    qvaluecutoff: 0.05    # pathway enrichment cutoffs
+    maxGSSize: 1000    # pathway enrichment maximum geneset size
+    msigdb_geneset: C2    # geneset category for MSigDB, can be C1: positional gene sets, C2: curated gene sets, C3: motif gene sets, C4: computational gene sets, C5: GO gene sets, C6: oncogenic signatures, C7: immunologic signatures, H: hallmark gene sets

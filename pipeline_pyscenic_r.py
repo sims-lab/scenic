@@ -55,29 +55,29 @@ def scenic_seurat(infile, outfile):
     reference_condition = PARAMS["rseurat_reference_condition"]
     FDR_threshold = PARAMS["rseurat_FDR_threshold"]
 
-    statement = """ Rscript -e "rmarkdown::render('%(R_PATH)s/scenic_seurat.Rmd',
-                        params = list(  working_dir = '%(working_dir)s',
-                                        seurat_object = '%(working_dir)s/%(seurat_object)s',
-                                        aucell_scores = '%(working_dir)s/%(infile)s',
-                                        aucell_zscores = '%(working_dir)s/%(aucell_zscores)s',
-                                        aucell_zscores_celltype = '%(working_dir)s/%(aucell_zscores_celltype)s',
-                                        aucell_zscores_condition = '%(working_dir)s/%(aucell_zscores_condition)s',
-                                        binary_matrix = '%(working_dir)s/%(binary_matrix)s',
-                                        results_directory = '%(working_dir)s/%(results_directory)s',
-                                        plots_directory = '%(working_dir)s/%(plots_directory)s',
-                                        datatype = '%(datatype)s',
-                                        umap_pcs = '%(umap_pcs)s',
-                                        cell_type = '%(cell_type)s',
-                                        condition = '%(condition)s',
-                                        clustering_resolution = '%(clustering_resolution)s',
-                                        stacked_vln_function = '%(working_dir)s/%(stacked_vln_function)s',
-                                        reference_condition = '%(reference_condition)s' ,
-                                        FDR_threshold = '%(FDR_threshold)s'),
-                                        output_file = '%(working_dir)s/%(outfile)s')"
-                        > %(outbase)s.log
-                        2> %(outbase)s.err """
+    statement = """Rscript -e "rmarkdown::render('%(R_PATH)s/scenic_seurat.Rmd',
+                                                 params = list(working_dir = '%(working_dir)s',
+                                                 seurat_object = '%(working_dir)s/%(seurat_object)s',
+                                                 aucell_scores = '%(working_dir)s/%(infile)s',
+                                                 aucell_zscores = '%(working_dir)s/%(aucell_zscores)s',
+                                                 aucell_zscores_celltype = '%(working_dir)s/%(aucell_zscores_celltype)s',
+                                                 aucell_zscores_condition = '%(working_dir)s/%(aucell_zscores_condition)s',
+                                                 binary_matrix = '%(working_dir)s/%(binary_matrix)s',
+                                                 results_directory = '%(working_dir)s/%(results_directory)s',
+                                                 plots_directory = '%(working_dir)s/%(plots_directory)s',
+                                                 datatype = '%(datatype)s',
+                                                 umap_pcs = '%(umap_pcs)s',
+                                                 cell_type = '%(cell_type)s',
+                                                 condition = '%(condition)s',
+                                                 clustering_resolution = '%(clustering_resolution)s',
+                                                 stacked_vln_function = '%(working_dir)s/%(stacked_vln_function)s',
+                                                 reference_condition = '%(reference_condition)s',
+                                                 FDR_threshold = '%(FDR_threshold)s'),
+                                                 output_file = '%(working_dir)s/%(outfile)s')"
+                   > %(outbase)s.log
+                   2> %(outbase)s.err"""
 
-    P.run(statement, job_threads = PARAMS["rseurat_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"],job_condaenv=PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["rseurat_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @follows(scenic_seurat)
 @transform("pyscenic_results.dir/*.dir/binary_matrix.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/binary_matrix.csv"), r"reports.dir/\1.dir/Scenic_analysis_R.html")
@@ -125,46 +125,46 @@ def rscenic(infile, outfile):
     ks_celltype_top = PARAMS["rscenic_ks_celltype_top"]
     ks_condition_top = PARAMS["rscenic_ks_condition_top"]
 
-    statement = """ Rscript -e "rmarkdown::render('%(R_PATH)s/Scenic_analysis_R.Rmd',
-                            params = list(  working_dir = '%(working_dir)s',
-                                            num_workers = '%(num_workers)s',
-                                            datatype = '%(datatype)s',
-                                            results_directory= '%(working_dir)s/%(results_directory)s',
-                                            plots_directory = '%(working_dir)s/%(plots_directory)s',
-                                            celltype  = '%(celltype)s',
-                                            condition = '%(condition)s',
-                                            celltype_condition = '%(celltype_condition)s',
-                                            celltype_zscores = '%(working_dir)s/%(celltype_zscores)s',
-                                            celltype_stim_zscores = '%(working_dir)s/%(celltype_stim_zscores)s',
-                                            stim_zscores = '%(working_dir)s/%(stim_zscores)s',
-                                            celltype_zscore_filter_threshold = '%(celltype_zscore_filter_threshold)s',
-                                            stim_zscore_filter_threshold = '%(stim_zscore_filter_threshold)s',
-                                            celltype_stim_zscore_filter_threshold = '%(celltype_stim_zscore_filter_threshold)s',
-                                            binary_mtx = '%(working_dir)s/%(infile)s',
-                                            annotation_celltype = '%(working_dir)s/%(annotation_celltype)s',
-                                            annotation_stim = '%(working_dir)s/%(annotation_stim)s',
-                                            annotation_celltype_stim = '%(working_dir)s/%(annotation_celltype_stim)s',
-                                            binary_heatmap_cell_annotations ='%(working_dir)s/%(binary_heatmap_cell_annotations)s',
-                                            rss_celltype = '%(working_dir)s/%(rss_celltype)s',
-                                            rss_stim = '%(working_dir)s/%(rss_stim)s',
-                                            rss_celltype_stim = '%(working_dir)s/%(rss_celltype_stim)s',
-                                            species = '%(species)s',
-                                            regulon_genes = '%(working_dir)s/%(regulon_genes)s',
-                                            exp_matrix = '%(working_dir)s/%(exp_matrix)s',
-                                            go_ont_option ='%(go_ont_option)s',
-                                            wilcoxon_celltype_top = '%(wilcoxon_celltype_top)s',
-                                            wilcoxon_condition_top = '%(wilcoxon_condition_top)s',
-                                            ks_celltype_top = '%(ks_celltype_top)s',
-                                            ks_condition_top = '%(ks_condition_top)s',
-                                            pvaluecutoff = '%(pvaluecutoff)s',
-                                            qvaluecutoff = '%(qvaluecutoff)s',
-                                            maxGSSize = '%(maxGSSize)s',
-                                            msigdb_geneset = '%(msigdb_geneset)s'),
-                                            output_file = '%(working_dir)s/%(outfile)s')"
-                            > %(outbase)s.log
-                            2> %(outbase)s.err """
+    statement = """Rscript -e "rmarkdown::render('%(R_PATH)s/Scenic_analysis_R.Rmd',
+                                                 params = list(working_dir = '%(working_dir)s',
+                                                 num_workers = '%(num_workers)s',
+                                                 datatype = '%(datatype)s',
+                                                 results_directory = '%(working_dir)s/%(results_directory)s',
+                                                 plots_directory = '%(working_dir)s/%(plots_directory)s',
+                                                 celltype  = '%(celltype)s',
+                                                 condition = '%(condition)s',
+                                                 celltype_condition = '%(celltype_condition)s',
+                                                 celltype_zscores = '%(working_dir)s/%(celltype_zscores)s',
+                                                 celltype_stim_zscores = '%(working_dir)s/%(celltype_stim_zscores)s',
+                                                 stim_zscores = '%(working_dir)s/%(stim_zscores)s',
+                                                 celltype_zscore_filter_threshold = '%(celltype_zscore_filter_threshold)s',
+                                                 stim_zscore_filter_threshold = '%(stim_zscore_filter_threshold)s',
+                                                 celltype_stim_zscore_filter_threshold = '%(celltype_stim_zscore_filter_threshold)s',
+                                                 binary_mtx = '%(working_dir)s/%(infile)s',
+                                                 annotation_celltype = '%(working_dir)s/%(annotation_celltype)s',
+                                                 annotation_stim = '%(working_dir)s/%(annotation_stim)s',
+                                                 annotation_celltype_stim = '%(working_dir)s/%(annotation_celltype_stim)s',
+                                                 binary_heatmap_cell_annotations ='%(working_dir)s/%(binary_heatmap_cell_annotations)s',
+                                                 rss_celltype = '%(working_dir)s/%(rss_celltype)s',
+                                                 rss_stim = '%(working_dir)s/%(rss_stim)s',
+                                                 rss_celltype_stim = '%(working_dir)s/%(rss_celltype_stim)s',
+                                                 species = '%(species)s',
+                                                 regulon_genes = '%(working_dir)s/%(regulon_genes)s',
+                                                 exp_matrix = '%(working_dir)s/%(exp_matrix)s',
+                                                 go_ont_option = '%(go_ont_option)s',
+                                                 wilcoxon_celltype_top = '%(wilcoxon_celltype_top)s',
+                                                 wilcoxon_condition_top = '%(wilcoxon_condition_top)s',
+                                                 ks_celltype_top = '%(ks_celltype_top)s',
+                                                 ks_condition_top = '%(ks_condition_top)s',
+                                                 pvaluecutoff = '%(pvaluecutoff)s',
+                                                 qvaluecutoff = '%(qvaluecutoff)s',
+                                                 maxGSSize = '%(maxGSSize)s',
+                                                 msigdb_geneset = '%(msigdb_geneset)s'),
+                                                 output_file = '%(working_dir)s/%(outfile)s')"
+                   > %(outbase)s.log
+                   2> %(outbase)s.err"""
 
-    P.run(statement, job_threads = PARAMS["rscenic_num_workers"], job_memory = '10G', job_queue = PARAMS["cluster_queue"],job_condaenv=PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["rscenic_num_workers"], job_memory = '10G', job_queue = PARAMS["cluster_queue"],job_condaenv = PARAMS["conda_env"])
 
 @follows(scenic_seurat,rscenic)
 def full():
