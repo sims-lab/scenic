@@ -309,8 +309,8 @@ Num_annotation_per_regulon <- function(cellInfo_f=params$annotation_celltype,bin
 
     print(p2)
 
-  } else{
-   print("cell type annotation files not provided")
+  }else{
+    print("cell type annotation files not provided")
   }
 
 }
@@ -333,7 +333,6 @@ regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option
   universe <- as.character(background$X1)
   rm(background)
   if(params$species== "fly"){
-    library(org.Dm.eg.db)
     res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize, keyType="SYMBOL", OrgDb= org.Dm.eg.db, readable=F, ont=ont_option ,fun = pathway_db)
     if(pathway_db== "enrichGO"){
       res_simplify <- clusterProfiler::simplify(x = res, cutoff=0.7)
@@ -345,7 +344,6 @@ regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option
     }
 
   }else if(params$species == "human"){
-    library(org.Hs.eg.db)
     res <- compareCluster(geneClusters = genes_list ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, keyType="SYMBOL", OrgDb= org.Hs.eg.db, readable=F, ont=ont_option,fun =pathway_db, universe=universe)
     if(pathway_db=="enrichGO"){
       res_simplify <- clusterProfiler::simplify(x = res, cutoff=0.7)
@@ -357,7 +355,6 @@ regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option
     }
 
   }else if(params$species == "mouse"){
-    library(org.Mm.eg.db)
     res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize,fun = pathway_db)
     if(pathway_db=="enrichGO"){
       res_simplify <- clusterProfiler::simplify(x = res, cutoff=0.7)
@@ -370,7 +367,7 @@ regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option
 
   }else if(params$species=="None"){
     print("No species information provided and relevant Organism dbi needs to be loaded from bioconductor")
-  } else{
+  }else{
     print("current options are fly, human,mouse or None")
   }
 
@@ -422,7 +419,6 @@ reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_d
 
 #background <- background[-1,]
   if(params$species== "fly"){
-    library(org.Dm.eg.db)
     bg_id <- bitr(background$X1, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Dm.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g=genes_list) %do% {
@@ -434,7 +430,6 @@ reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_d
     saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
     return(res)
   }else if(params$species == "human"){
-    library(org.Hs.eg.db)
     bg_id <- bitr(background$X1, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Hs.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g=genes_list) %do% {
@@ -446,7 +441,6 @@ reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_d
     saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db,'_regulons_results', '.rds'))
     return(res)
   }else if(params$species == "mouse"){
-    library(org.Mm.eg.db)
     bg_id <- bitr(background$X1, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Mm.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g=genes_list) %do% {
@@ -459,7 +453,7 @@ reactome_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_d
     return(res)
   }else if(params$species=="None"){
     print("No species information provided and relevant Organism dbi needs to be loaded from bioconductor")
-  } else{
+  }else{
     print("current options are fly, human,mouse or None")
   }
 
@@ -482,7 +476,6 @@ kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="e
 
 #background <- background[-1,]
   if(params$species== "fly"){
-    library(org.Dm.eg.db)
     bg_id <- bitr(background$X1, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Dm.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g=genes_list) %do% {
@@ -494,7 +487,6 @@ kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="e
     saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
     return(res)
   }else if(params$species == "human"){
-    library(org.Hs.eg.db)
     bg_id <- bitr(background$X1, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Hs.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g=genes_list) %do% {
@@ -506,7 +498,6 @@ kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="e
     saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db,'_regulons_results', '.rds'))
     return(res)
   }else if(params$species == "mouse"){
-    library(org.Mm.eg.db)
     bg_id <- bitr(background$X1, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Mm.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g=genes_list) %do% {
@@ -519,7 +510,7 @@ kegg_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db="e
     return(res)
   }else if(params$species=="None"){
     print("No species information provided and relevant Organism dbi needs to be loaded from bioconductor")
-  } else{
+  }else{
     print("current options are fly, human,mouse or None")
   }
 
@@ -541,30 +532,27 @@ msigdb_pathway_enrichment <- function(regulons_f=params$regulon_gene,pathway_db=
   universe <- as.character(background$X1)
   rm(background)
   if(params$species== "fly"){
-    library(org.Dm.eg.db)
     m_t2g <- msigdbr(species = "Drosophila melanogaster"  , category = msigdb_geneset) %>%
       dplyr::select(gs_name, gene_symbol)
     res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize ,fun = "enricher", TERM2GENE= m_t2g)
     saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
     return(res)
   }else if(params$species == "human"){
-    library(org.Hs.eg.db)
-      m_t2g <- msigdbr(species = "Homo sapiens"  , category = msigdb_geneset) %>%
-      dplyr::select(gs_name, gene_symbol)
-      res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize,fun = "enricher", TERM2GENE= m_t2g)
-      saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
-      return(res)
+    m_t2g <- msigdbr(species = "Homo sapiens"  , category = msigdb_geneset) %>%
+    dplyr::select(gs_name, gene_symbol)
+    res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize,fun = "enricher", TERM2GENE= m_t2g)
+    saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
+    return(res)
 
   }else if(params$species == "mouse"){
-    library(org.Mm.eg.db)
-      m_t2g <- msigdbr(species = "Mus musculus"  , category = msigdb_geneset) %>%
-      dplyr::select(gs_name, gene_symbol)
-      res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize ,fun = "enricher", TERM2GENE= m_t2g)
-      saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
-      return(res)
+    m_t2g <- msigdbr(species = "Mus musculus"  , category = msigdb_geneset) %>%
+    dplyr::select(gs_name, gene_symbol)
+    res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize ,fun = "enricher", TERM2GENE= m_t2g)
+    saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
+    return(res)
   }else if(params$species=="None"){
     print("No species information provided and relevant Organism dbi needs to be loaded from bioconductor")
-  } else{
+  }else{
     print("current options are fly, human,mouse or None")
   }
 
