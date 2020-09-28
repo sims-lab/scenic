@@ -869,7 +869,9 @@ if(params$condition != "None"){
 
 
 ```
+
 ### Top 10 RSS Regulons (celltype + condition)
+
 
 ```{r, fig.height=8,fig.width=10, eval=T}
 if(params$celltype_condition != "None"){
@@ -958,6 +960,7 @@ if(params$condition != "None") {
 
 
 ```
+
 ### Top 10 RSS Regulons (celltype + condition)
 
 ```{r, fig.height=8,fig.width=10, eval=T}
@@ -1047,6 +1050,7 @@ if(params$condition != "None"){
 
 
 ```
+
 ### Top 10 RSS Regulons (celltype + condition)
 
 ```{r, fig.height=8,fig.width=10, eval=T}
