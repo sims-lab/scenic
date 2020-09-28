@@ -87,7 +87,6 @@ def rscenic(infile, outfile):
     if "normalised" in infile:
         datatype = "normalised"
         exp_matrix = dir + PARAMS["rscenic_exp_matrix"]
-        exp_matrix = exp_matrix.replace("raw-expression.csv","normalised-expression.csv")
     elif "raw" in infile:
         datatype = "raw"
         exp_matrix = dir + PARAMS["rscenic_exp_matrix"]
