@@ -229,7 +229,7 @@ binary_auc_heatmap <- function(binary_mtx_f= params$binary_mtx, annotation_col_f
  save_pheatmap_pdf(plot_1, filename = paste0(plots_directory,'/',datatype,'/','Binary_RegulonActivity_allcells','_heatmap.pdf'),     width=plot_width,height= plot_height)
  saveRDS(plot_1, file = paste0(plots_directory,'/',datatype,'/','Binary_RegulonActivity_allcells','_heatmap.rds'))
  print(plot_1)
- 
+
 }
 
 RSS_annotation_plot <- function(annotation_type=params$celltype,rss_f=params$rss_celltype, units="in", plot_height=5, plot_width=7){
@@ -318,56 +318,55 @@ Num_annotation_per_regulon <- function(cellInfo_f=params$annotation_celltype,bin
 barplot_theme <- list(theme(axis.text.x = element_text(angle=45,hjust = 1,vjust =1, size=5),axis.title = element_text(size=6), plot.title = element_text(size=7)))
 
 
-regulon_pathway_enrichment <- function(regulons_f=params$regulon_gene,ont_option= params$go_ont_option,pathway_db="enrichGO", maxGSSize=params$maxGSSize, pvalueCutoff= as.numeric(params$pvaluecutoff), qvalueCutoff= as.numeric(params$qvaluecutoff)){
+regulon_pathway_enrichment <- function(regulons_f = params$regulon_gene, ont_option = params$go_ont_option, pathway_db = "enrichGO", maxGSSize = params$maxGSSize, pvalueCutoff = as.numeric(params$pvaluecutoff), qvalueCutoff = as.numeric(params$qvaluecutoff)) {
 
   regulon_genes <- read_csv(file=regulons_f)
   regulon_genes$genes <- gsub("[[:space:]]", "", regulon_genes$genes) # note
 
-
   regulon_genes$genes_list <- (strsplit(regulon_genes$genes, ","))
-  genes_list <-(regulon_genes$genes_list)
+  genes_list <- (regulon_genes$genes_list)
   names(genes_list) <- regulon_genes$regulon_name
 
-  background <- read_csv(file=params$exp_matrix)
+  background <- read_csv(file = params$exp_matrix)
 #background <- background[-1,]
   universe <- as.character(background$X1)
   rm(background)
-  if(params$species== "fly"){
-    res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize, keyType="SYMBOL", OrgDb= org.Dm.eg.db, readable=F, ont=ont_option ,fun = pathway_db)
-    if(pathway_db== "enrichGO"){
-      res_simplify <- clusterProfiler::simplify(x = res, cutoff=0.7)
-      saveRDS(res_simplify,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_simplified_regulons_results','.rds'))
+  if (params$species == "fly") {
+    res <- compareCluster(geneClusters = genes_list, universe = universe, pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, keyType = "SYMBOL", OrgDb = org.Dm.eg.db, readable = F, ont = ont_option , fun = pathway_db)
+    if (pathway_db == "enrichGO") {
+      res_simplify <- clusterProfiler::simplify(x = res, cutoff = 0.7)
+      saveRDS(res_simplify, file = paste0(results_directory, '/', datatype, '/', pathway_db, '_simplified_regulons_results','.rds'))
       return(res_simplify)
-    }else{
-      saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
+    } else {
+      saveRDS(res, file = paste0(results_directory, '/', datatype, '/', pathway_db, '_regulons_results', '.rds'))
       return(res)
     }
 
-  }else if(params$species == "human"){
-    res <- compareCluster(geneClusters = genes_list ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, keyType="SYMBOL", OrgDb= org.Hs.eg.db, readable=F, ont=ont_option,fun =pathway_db, universe=universe)
-    if(pathway_db=="enrichGO"){
-      res_simplify <- clusterProfiler::simplify(x = res, cutoff=0.7)
-      saveRDS(res_simplify,file = paste0(results_directory,'/',datatype,'/',pathway_db,'_simplified_regulons_results', '.rds'))
+  } else if(params$species == "human") {
+    res <- compareCluster(geneClusters = genes_list, pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, keyType = "SYMBOL", OrgDb= org.Hs.eg.db, readable = F, ont = ont_option, fun = pathway_db, universe = universe)
+    if (pathway_db == "enrichGO") {
+      res_simplify <- clusterProfiler::simplify(x = res, cutoff = 0.7)
+      saveRDS(res_simplify, file = paste0(results_directory, '/', datatype, '/', pathway_db, '_simplified_regulons_results', '.rds'))
       return(res_simplify)
-    }else{
-      saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
+    } else {
+      saveRDS(res, file = paste0(results_directory, '/', datatype,'/', pathway_db, '_regulons_results','.rds'))
       return(res)
     }
 
-  }else if(params$species == "mouse"){
-    res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize =maxGSSize,fun = pathway_db)
-    if(pathway_db=="enrichGO"){
-      res_simplify <- clusterProfiler::simplify(x = res, cutoff=0.7)
-      saveRDS(res_simplify,file = paste0(results_directory,'/',datatype,'/',pathway_db,'_simplified_regulons_results','.rds'))
+  } else if (params$species == "mouse"){
+    res <- compareCluster(geneClusters = genes_list, universe = universe ,pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, fun = pathway_db)
+    if (pathway_db == "enrichGO") {
+      res_simplify <- clusterProfiler::simplify(x = res, cutoff = 0.7)
+      saveRDS(res_simplify, file = paste0(results_directory,'/',datatype,'/', pathway_db,'_simplified_regulons_results','.rds'))
       return(res_simplify)
-    }else{
-      saveRDS(res,file = paste0(results_directory,'/',datatype,'/',pathway_db ,'_regulons_results','.rds'))
+    } else {
+      saveRDS(res,file = paste0(results_directory, '/' ,datatype, '/', pathway_db, '_regulons_results', '.rds'))
       return(res)
     }
 
-  }else if(params$species=="None"){
+  } else if (params$species == "None") {
     print("No species information provided and relevant Organism dbi needs to be loaded from bioconductor")
-  }else{
+  } else {
     print("current options are fly, human,mouse or None")
   }
 
@@ -668,7 +667,7 @@ if(params$celltype != "None"){
 # "annotation_type" in function giving the type of annotation : options : celltype, stim or celltype_stim . This is based on the  2nd column name in params$annotation_stim file
 if(params$condition != "None"){
   binary_celltype_perc_heatmap(plot_height = 4,plot_width = 6, annotation_type = params$condition,cellInfo_f =params$annotation_stim, minPerc = .60,cluster_rows=F,cluster_cols=F)
-  
+
 } else{
   print("No condition information provided in the parameters")
 }
@@ -743,9 +742,9 @@ if(params$celltype_condition != "None"){
 # annotation_type has to be "celltype"
 if(params$celltype != "None"){
   Num_active_regulons_annotation(cellInfo_f = params$annotation_celltype,binary_mtx_f = params$binary_mtx,annotation_type = params$celltype,units = "in",plot_height = 4,plot_width = 12)
-  
+
   Num_annotation_per_regulon(cellInfo_f = params$annotation_celltype,binary_mtx_f = params$binary_mtx,annotation_type = params$celltype,units = "in",plot_height = 4,plot_width = 11)
-  
+
 } else{
   print ("No celltype information provided")
 }
@@ -796,7 +795,7 @@ if(params$celltype_condition != "None"){
 ## GO Biological Process
 
 ```{r}
-GO_res <- regulon_pathway_enrichment(regulons_f = params$regulon_genes, ont_option = params$go_ont_option,pathway_db = "enrichGO",maxGSSize = params$maxGSSize)
+GO_res <- regulon_pathway_enrichment(regulons_f = params$regulon_genes, ont_option = params$go_ont_option, pathway_db = "enrichGO", maxGSSize = params$maxGSSize)
 
 
 ```
@@ -941,7 +940,7 @@ if(params$condition != "None"){
 
 ```{r, fig.height=8,fig.width=10}
 if(params$celltype != "None"){
- rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "Reactome",res_f = Reactome_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 5,plot_col = 4) 
+ rss_pathway_plot(rss_f = params$rss_celltype,annotation_type = params$celltype,showCategory = 8,pathwaydb = "Reactome",res_f = Reactome_res,plot_height = 8,plot_width = 10,units = "in",plot_row = 5,plot_col = 4)
 }
 
 
