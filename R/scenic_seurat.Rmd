@@ -27,6 +27,15 @@ params:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+Script:
+1. Plots absolute AUCell scores, AUCell Z-scores and binary AUCell scores on Seurat UMAP
+2. Performs PCA and clustering on AUCell scores - cluster cells together with similar regulon profiles
+3. Plots violin plots of AUCell score split by cell type or condition
+4. Identifies top 10 regulons per cell type and group based on z-score - plots violin plots and heatmaps
+5. Identifies top 10 regulons per cell type and group based on absolute AUCell score
+6. Performs Wilcoxon and KS tests to identify regulons that show differential activity between cell types and conditions
+7. Plots heatmaps of top 10 regulons from Wilcoxon or KS for cell types and conditions
+
 ```{r Load_packages, include = FALSE}
 library(Seurat)
 library(tidyverse)
@@ -179,11 +188,37 @@ seurat_object <- FindNeighbors(seurat_object,
 seurat_object <- FindClusters(seurat_object, 
                               graph.name = "scenic_snn", 
                               resolution = as.numeric(params$clustering_resolution))
+
+DimPlot(seurat_object, reduction = "scenic_umap",
+        group.by = paste0("scenic_snn_res.", params$clustering_resolution), 
+        label = TRUE, label.size = 4) + 
+    NoLegend() +
+    ggtitle("SCENIC clusters") +
+    theme(plot.title = element_text(hjust = 0.5))
+
 DimPlot(seurat_object, reduction = "scenic_umap", 
-        group.by = params$cell_type, label = TRUE, label.size = 3) + 
-    NoLegend()
+        group.by = params$cell_type, label = TRUE, label.size = 4) + 
+    NoLegend() +
+    ggtitle("Gene expression clusters") +
+    theme(plot.title = element_text(hjust = 0.5))
 
 saveRDS(seurat_object, file = paste0(results_directory, "/", datatype, "/","scenic_seurat_object",".rds"))
+```
+
+#### Plot SCENIC cluster identities on gene expression UMAP
+
+```{r Gene_expression_UMAP}
+DimPlot(seurat_object, reduction = "umap", 
+        group.by = paste0("scenic_snn_res.", params$clustering_resolution), label = TRUE, label.size = 4) + 
+    NoLegend() +
+    ggtitle("SCENIC clusters") +
+    theme(plot.title = element_text(hjust = 0.5))
+
+DimPlot(seurat_object, reduction = "umap", 
+        group.by = params$cell_type, label = TRUE, label.size = 4) + 
+    NoLegend() +
+    ggtitle("Gene expression clusters") +
+    theme(plot.title = element_text(hjust = 0.5))
 ```
 
 #### Violin plots split by condition and cell type
@@ -252,7 +287,8 @@ top10_regulons_celltype <- aucell_zscore_celltype %>%
 source(params$stacked_vln_function)
 
 if (params$condition != "None") {
-    pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_", params$condition, "_stacked_violin.pdf"), 
+    pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_", 
+               params$condition, "_stacked_violin.pdf"), 
         width = 7, height = 10)
     Idents(seurat_object) <- params$condition
     print(StackedVlnPlot(obj = seurat_object, 
@@ -260,7 +296,8 @@ if (params$condition != "None") {
                          assay = "scenic", 
                          slot = "scale.data") +
               plot_annotation(title = "Top 10 regulons condition", 
-                              theme = theme(plot.title = element_text(size = 14, hjust = 0.5))))
+                              theme = theme(plot.title = element_text(size = 14, 
+                                                                      hjust = 0.5))))
 
     Idents(seurat_object) <- params$cell_type
     print(StackedVlnPlot(obj = seurat_object, 
@@ -268,18 +305,21 @@ if (params$condition != "None") {
                          assay = "scenic", 
                          slot = "scale.data") +
               plot_annotation(title = "Top 10 regulons condition", 
-                              theme = theme(plot.title = element_text(size = 14, hjust = 0.5))))
+                              theme = theme(plot.title = element_text(size = 14, 
+                                                                      hjust = 0.5))))
     dev.off()
 }
 
-pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_", params$cell_type, "_stacked_violin.pdf"), 
+pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_", 
+           params$cell_type, "_stacked_violin.pdf"), 
     width = 7, height = 10)
 Idents(seurat_object) <- params$cell_type
 StackedVlnPlot(obj = seurat_object, features = top10_regulons_celltype$regulon, 
                assay = "scenic", 
                slot = "scale.data") +
     plot_annotation(title = "Top 10 regulons celltype",
-                    theme = theme(plot.title = element_text(size = 14, hjust = 0.5)))
+                    theme = theme(plot.title = element_text(size = 14, 
+                                                            hjust = 0.5)))
 
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
@@ -288,7 +328,8 @@ if (params$condition != "None") {
                    assay = "scenic",
                    slot = "scale.data") +
         plot_annotation(title = "Top 10 regulons celltype", 
-                        theme = theme(plot.title = element_text(size = 14, hjust = 0.5)))
+                        theme = theme(plot.title = element_text(size = 14, 
+                                                                hjust = 0.5)))
 }
 dev.off()
 ```
@@ -304,7 +345,7 @@ top10_regulons_per_group <- function(aucell_zscore_table, groups) {
             filter(annotation == group) %>%
             arrange(desc(annotation_zscore)) %>%
             slice_head(n = 10)
-        top10_regulons_per_group$group <- as.character(group)
+#        top10_regulons_per_group$group <- as.character(group)
         regulon_list[[as.character(group)]] <- top10_regulons_per_group
     }
     return(regulon_list)
@@ -322,7 +363,8 @@ top10_regulons_per_celltype <- top10_regulons_per_group(
 
 # Plot
 if (params$condition != "None") {
-    pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_", params$condition, "_z-score", "_stacked_violin.pdf"), 
+    pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_",
+               params$condition, "_z-score", "_stacked_violin.pdf"), 
         width = 7, height = 10)
     Idents(seurat_object) <- params$condition
     i <- 1
@@ -333,13 +375,16 @@ if (params$condition != "None") {
                              assay = "scenic", 
                              slot = "scale.data") +
               plot_annotation(title = group_name, 
-                              theme = theme(plot.title = element_text(size = 14, hjust = 0.5))))
+                              theme = theme(plot.title = element_text(size = 14, 
+                                                                      hjust = 0.5))))
     i <- i + 1
 }
 dev.off()
 }
 
-pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_", params$cell_type, "_z-score", "_stacked_violin.pdf"), width = 7, height = 10)
+pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_", 
+           params$cell_type, "_z-score", "_stacked_violin.pdf"), 
+    width = 7, height = 10)
 Idents(seurat_object) <- params$cell_type
 i <- 1
 for (group in top10_regulons_per_celltype) {
@@ -349,7 +394,8 @@ for (group in top10_regulons_per_celltype) {
                          assay = "scenic",
                          slot = "scale.data") +
               plot_annotation(title = group_name, 
-                              theme = theme(plot.title = element_text(size = 14, hjust = 0.5))))
+                              theme = theme(plot.title = element_text(size = 14,
+                                                                      hjust = 0.5))))
     i <- i + 1
 }
 dev.off()
@@ -372,10 +418,19 @@ if (params$condition != "None") {
     annotation_col <- metadata %>%
         select(barcode, !!sym(params$condition)) %>%
         column_to_rownames(var = "barcode")
+    
+    if (length(unique(top10_regulons_per_condition$regulon)) == length(top10_regulons_per_condition$regulon)) {
+        annotation_row <- top10_regulons_per_condition %>% 
+            select(1, 2) %>% 
+            dplyr::rename(!!sym(params$condition) := annotation) %>% 
+            column_to_rownames(var = "regulon")
+    }
 
     pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_", params$condition, "_z-score", "_heatmap.pdf"), width = 8, height = 6)
-    print(pheatmap(top10_regulons_per_condition_aucell, show_colnames = FALSE,
-                   annotation_col = annotation_col))
+    print(pheatmap(top10_regulons_per_condition_aucell, 
+                   show_colnames = FALSE,
+                   annotation_col = annotation_col, 
+                   annotation_row = annotation_row))
     dev.off()
 }
 ```
@@ -390,6 +445,7 @@ top10_regulons_per_celltype_aucell <- apply(
     top10_regulons_per_celltype_aucell, 
     MARGIN = 1,
     FUN = function(x) ifelse(x > 3, 3, x))
+
 top10_regulons_per_celltype_aucell <- apply(
     top10_regulons_per_celltype_aucell, 
     MARGIN = 1,
@@ -399,7 +455,8 @@ annotation_col <- metadata %>%
     select(barcode, !!sym(params$cell_type)) %>%
     column_to_rownames(var = "barcode")
 
-pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_", params$cell_type, "_z-score", "_heatmap.pdf"), 
+pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_",
+           params$cell_type, "_z-score", "_heatmap.pdf"), 
     width = 8, height = 10)
 pheatmap(top10_regulons_per_celltype_aucell, 
          show_colnames = FALSE,
@@ -440,6 +497,7 @@ if (params$condition != "None") {
         top10_regulons_per_condition_abs_aucell, 
         MARGIN = 1,
         FUN = function(x) ifelse(x > 3, 3, x))
+    
     top10_regulons_per_condition_abs_aucell <- apply(
         top10_regulons_per_condition_abs_aucell,
         MARGIN = 1, 
@@ -449,7 +507,8 @@ if (params$condition != "None") {
         select(barcode, !!sym(params$condition)) %>%
         column_to_rownames(var = "barcode")
 
-    pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_", params$condition, "_abs", "_heatmap.pdf"), 
+    pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_",
+               params$condition, "_abs", "_heatmap.pdf"), 
         width = 8, height = 6)
     print(pheatmap(top10_regulons_per_condition_abs_aucell, 
                    show_colnames = FALSE,
@@ -466,6 +525,7 @@ top10_regulons_per_celltype_abs_aucell <- apply(
     top10_regulons_per_celltype_abs_aucell, 
     MARGIN = 1,
     FUN = function(x) ifelse(x > 3, 3, x))
+
 top10_regulons_per_celltype_abs_aucell <- apply(
     top10_regulons_per_celltype_abs_aucell, 
     MARGIN = 1,
@@ -475,7 +535,9 @@ annotation_col <- metadata %>%
     select(barcode, !!sym(params$cell_type)) %>%
     column_to_rownames(var = "barcode")
 
-pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_", params$cell_type, "_abs", "_heatmap.pdf"), width = 8, height = 10)
+pdf(paste0(params$plots_directory, "/", datatype, "/top10_regulons_per_", 
+           params$cell_type, "_abs", "_heatmap.pdf"), 
+    width = 8, height = 10)
 pheatmap(top10_regulons_per_celltype_abs_aucell, 
          show_colnames = FALSE,
          annotation_col = annotation_col)
@@ -584,22 +646,22 @@ all_regulons_comparison <- function(comparisons, aucell_matrix_long, group, stat
 ```
 
 ```{r Wilcoxon}
-try({wilcoxon_results_condition <- all_regulons_comparison(
-    condition_comparisons, 
-    aucell_matrix_long, params$condition, "wilcoxon")
-wilcoxon_results_condition$FDR <- p.adjust(wilcoxon_results_condition$pvalue,
-                                           method = "BH")
-write_csv(wilcoxon_results_condition[, c(1:4, 7, 5, 6)], 
-          paste0(results_directory, "/", datatype, "/", "wilcoxon_condition_comparison.csv"))}, 
-silent = TRUE)
-
-wilcoxon_results_celltype <- all_regulons_comparison(
-    celltype_comparisons, 
-    aucell_matrix_long, params$cell_type, "wilcoxon")
-wilcoxon_results_celltype$FDR <- p.adjust(wilcoxon_results_celltype$pvalue, 
-                                          method = "BH")
-write_csv(wilcoxon_results_celltype[, c(1:4, 7, 5, 6)], 
-          paste0(results_directory, "/", datatype, "/", "wilcoxon_celltype_comparison.csv"))
+# try({wilcoxon_results_condition <- all_regulons_comparison(
+#     condition_comparisons, 
+#     aucell_matrix_long, params$condition, "wilcoxon")
+# wilcoxon_results_condition$FDR <- p.adjust(wilcoxon_results_condition$pvalue,
+#                                            method = "BH")
+# write_csv(wilcoxon_results_condition[, c(1:4, 7, 5, 6)], 
+#           paste0(results_directory, "/", datatype, "/", "wilcoxon_condition_comparison.csv"))}, 
+# silent = TRUE)
+# 
+# wilcoxon_results_celltype <- all_regulons_comparison(
+#     celltype_comparisons, 
+#     aucell_matrix_long, params$cell_type, "wilcoxon")
+# wilcoxon_results_celltype$FDR <- p.adjust(wilcoxon_results_celltype$pvalue, 
+#                                           method = "BH")
+# write_csv(wilcoxon_results_celltype[, c(1:4, 7, 5, 6)], 
+#           paste0(results_directory, "/", datatype, "/", "wilcoxon_celltype_comparison.csv"))
 ```
 
 ```{r Wilcoxon_FindMarkers}
@@ -618,7 +680,28 @@ for (identity in as.character(unique(Idents(seurat_object)))) {
 }
 wilcoxon_markers_celltype <- bind_rows(wilcoxon_markers_list)
 write_csv(wilcoxon_markers_celltype, 
-          paste0(results_directory, "/", datatype, "/", "wilcoxon_celltype_comparison_FindMarkers.csv"))
+          paste0(results_directory, "/", datatype, "/",
+                 "wilcoxon_celltype_comparison_FindMarkers.csv"))
+
+# Condition - one vs. all
+if (params$condition != "None") {
+    Idents(seurat_object) <- params$condition
+    wilcoxon_markers_list <- list()
+    for (identity in as.character(unique(Idents(seurat_object)))) {
+        markers <- FindMarkers(seurat_object, 
+                               slot = "scale.data", 
+                               ident.1 = identity,
+                               only.pos = TRUE, 
+                               verbose = FALSE)
+        markers$test_condition <- identity
+        markers <- rownames_to_column(markers, var = "regulon")
+        wilcoxon_markers_list[[identity]] <- markers
+    }
+    wilcoxon_markers_condition <- bind_rows(wilcoxon_markers_list)
+    write_csv(wilcoxon_markers_condition, 
+              paste0(results_directory, "/", datatype, "/",
+                     "wilcoxon_condition_onevsall_comparison_FindMarkers.csv"))
+}
 
 # Condition - test vs. reference
 if (params$condition != "None") {
@@ -638,7 +721,8 @@ if (params$condition != "None") {
     }
     wilcoxon_markers_condition_reference <- bind_rows(wilcoxon_markers_list)
     write_csv(wilcoxon_markers_condition_reference, 
-              paste0(results_directory, "/", datatype, "/", "wilcoxon_condition_reference_comparison_FindMarkers.csv"))
+              paste0(results_directory, "/", datatype, "/",
+                     "wilcoxon_condition_reference_comparison_FindMarkers.csv"))
 }
 
 # Condition - all pairwise
@@ -664,26 +748,8 @@ if (params$condition != "None") {
     }
     wilcoxon_markers_condition_pairwise <- bind_rows(wilcoxon_markers_list)
     write_csv(wilcoxon_markers_condition_pairwise, 
-              paste0(results_directory, "/", datatype, "/", "wilcoxon_condition_pairwise_comparison_FindMarkers.csv"))
-}
-
-# Condition - one vs. all
-if (params$condition != "None") {
-    Idents(seurat_object) <- params$condition
-    wilcoxon_markers_list <- list()
-    for (identity in as.character(unique(Idents(seurat_object)))) {
-        markers <- FindMarkers(seurat_object, 
-                               slot = "scale.data", 
-                               ident.1 = identity,
-                               only.pos = TRUE, 
-                               verbose = FALSE)
-        markers$test_condition <- identity
-        markers <- rownames_to_column(markers, var = "regulon")
-        wilcoxon_markers_list[[identity]] <- markers
-    }
-    wilcoxon_markers_condition <- bind_rows(wilcoxon_markers_list)
-    write_csv(wilcoxon_markers_condition, 
-              paste0(results_directory, "/", datatype, "/", "wilcoxon_condition_onevsall_comparison_FindMarkers.csv"))
+              paste0(results_directory, "/", datatype, "/",
+                     "wilcoxon_condition_pairwise_comparison_FindMarkers.csv"))
 }
 ```
 
@@ -695,7 +761,8 @@ try({ks_results_condition <- all_regulons_comparison(condition_comparisons,
 ks_results_condition$FDR <- p.adjust(ks_results_condition$pvalue, 
                                      method = "BH")
 write_csv(ks_results_condition[, c(1:4, 7, 5, 6)], 
-          paste0(results_directory, "/", datatype, "/", "ks_condition_comparison.csv"))}, silent = TRUE)
+          paste0(results_directory, "/", datatype, "/", "ks_condition_comparison.csv"))}, 
+silent = TRUE)
 
 ks_results_celltype <- all_regulons_comparison(celltype_comparisons, 
                                                aucell_matrix_long, 
@@ -717,8 +784,9 @@ top10_wilcoxon_celltype <- wilcoxon_markers_celltype %>%
     arrange(desc(avg_diff)) %>%
     slice_head(n = 10) %>%
     ungroup()
+
 write_csv(top10_wilcoxon_celltype, 
-          paste0(results_directory, "/", datatype, "/", "wilcoxon_celltype_top10_FindMarkers.csv"))
+          paste0(results_directory, "/", datatype, "/", "wilcoxon_celltype_top10.csv"))
 
 # The KS test has no pre-filtering
 top10_ks_celltype <- ks_results_celltype %>%
@@ -727,6 +795,7 @@ top10_ks_celltype <- ks_results_celltype %>%
     arrange(desc(log2FC)) %>%
     slice_head(n = 10) %>%
     ungroup()
+
 write_csv(top10_ks_celltype, 
           paste0(results_directory, "/", datatype, "/", "ks_celltype_top10.csv"))
 
@@ -737,6 +806,7 @@ if (params$condition != "None") {
         arrange(desc(avg_diff)) %>%
         slice_head(n = 10) %>%
         ungroup()
+    
     write_csv(top10_wilcoxon_condition_reference,
               paste0(results_directory, "/", datatype, "/", "wilcoxon_condition_reference_top10_FindMarkers.csv"))
     
@@ -746,6 +816,7 @@ if (params$condition != "None") {
         arrange(desc(avg_diff)) %>% 
         slice_head(n = 10) %>% 
         ungroup()
+    
     write_csv(top10_wilcoxon_condition_pairwise, 
               paste0(results_directory, "/", datatype, "/", "wilcoxon_condition_pairwise_top10_FindMarkers.csv"))
 
@@ -755,6 +826,7 @@ if (params$condition != "None") {
         arrange(desc(log2FC)) %>%
         slice_head(n = 10) %>%
         ungroup()
+
     write_csv(top10_ks_condition, 
               paste0(results_directory, "/", datatype, "/", "ks_condition_top10.csv"))
 }
@@ -768,6 +840,7 @@ top10_heatmap <- function(top10_regulons_table,
                           filename = "") {
     aucell_zscore <- rownames_to_column(as.data.frame(aucell_zscore), 
                                         var = "regulon")
+    
     top10_regulons_table_filtered <- aucell_zscore %>%
         dplyr::filter(regulon %in% top10_regulons_table$regulon) %>%
         distinct(regulon, .keep_all = TRUE) %>% 
@@ -778,6 +851,7 @@ top10_heatmap <- function(top10_regulons_table,
         top10_regulons_table_filtered,
         MARGIN = 1,
         FUN = function(x) ifelse(x > 3, 3, x))
+    
     top10_regulons_table_filtered <- apply(
         top10_regulons_table_filtered, 
         MARGIN = 1,
@@ -790,7 +864,8 @@ top10_heatmap <- function(top10_regulons_table,
     pheatmap(top10_regulons_table_filtered, 
              show_colnames = FALSE,
              annotation_col = annotation_col, 
-             filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_wilcoxon_", group, filename, "_heatmap.pdf"), 
+             filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_wilcoxon_",
+                               group, filename, "_heatmap.pdf"), 
              width = 8, height = 10)
     
     print(pheatmap(top10_regulons_table_filtered, 
@@ -805,6 +880,7 @@ if (params$condition != "None") {
                   aucell_zscore, 
                   params$condition, 
                   "_reference")
+    
     top10_heatmap(top10_wilcoxon_condition_pairwise, 
                   aucell_zscore, 
                   params$condition, 
@@ -816,15 +892,19 @@ if (params$condition != "None") {
 
 ```{r Heatmap_wilcoxon_average}
 Idents(seurat_object) <- params$cell_type
+
 top10_wilcoxon_celltype_average <- AverageExpression(
     seurat_object, 
     features = unique(top10_wilcoxon_celltype$regulon), 
     assays = "scenic", 
     slot = "scale.data")
+
 top10_wilcoxon_celltype_average <- top10_wilcoxon_celltype_average[["scenic"]]
+
 pheatmap(top10_wilcoxon_celltype_average, 
          scale = "row",
-         filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_wilcoxon_", params$cell_type, "_average_heatmap.pdf"), 
+         filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_wilcoxon_",
+                           params$cell_type, "_average_heatmap.pdf"), 
          width = 5, height = 6)
 
 if (params$condition != "None") {
@@ -834,10 +914,13 @@ if (params$condition != "None") {
         features = unique(top10_wilcoxon_condition_reference$regulon), 
         assays = "scenic", 
         slot = "scale.data")
+    
     top10_wilcoxon_condition_reference_average <- top10_wilcoxon_condition_reference_average[["scenic"]]
+    
     pheatmap(top10_wilcoxon_condition_reference_average, 
              scale = "row",
-             filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_wilcoxon_condition_reference_average_heatmap.pdf"), 
+             filename = paste0(params$plots_directory, "/", datatype,
+                               "/top10_regulons_wilcoxon_condition_reference_average_heatmap.pdf"), 
              width = 5, height = 6)
     
     top10_wilcoxon_condition_pairwise_average <- AverageExpression(
@@ -845,25 +928,32 @@ if (params$condition != "None") {
         features = unique(top10_wilcoxon_condition_pairwise$regulon), 
         assays = "scenic", 
         slot = "scale.data")
+    
     top10_wilcoxon_condition_pairwise_average <- top10_wilcoxon_condition_pairwise_average[["scenic"]]
+    
     pheatmap(top10_wilcoxon_condition_pairwise_average, 
              scale = "row",
-             filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_wilcoxon_condition_pairwise_average_heatmap.pdf"),
+             filename = paste0(params$plots_directory, "/", datatype,
+                               "/top10_regulons_wilcoxon_condition_pairwise_average_heatmap.pdf"),
              width = 5, height = 6)
 }
 ```
 
 ```{r Heatmap_ks_average}
 Idents(seurat_object) <- params$cell_type
+
 top10_ks_celltype_average <- AverageExpression(
     seurat_object, 
     features = unique(top10_ks_celltype$regulon), 
     assays = "scenic", 
     slot = "scale.data")
+
 top10_ks_celltype_average <- top10_ks_celltype_average[["scenic"]]
+
 pheatmap(top10_ks_celltype_average, 
          scale = "row",
-         filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_ks_", params$cell_type, "_average_heatmap.pdf"), 
+         filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_ks_",
+                           params$cell_type, "_average_heatmap.pdf"), 
          width = 5, height = 8, fontsize = 6)
 
 if (params$condition != "None") {
@@ -873,10 +963,13 @@ if (params$condition != "None") {
         features = unique(top10_ks_condition$regulon), 
         assays = "scenic", 
         slot = "scale.data")
+    
     top10_ks_condition_average <- top10_ks_condition_average[["scenic"]]
+    
     pheatmap(top10_ks_condition_average, 
              scale = "row",
-             filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_ks_", params$condition, "_average_heatmap.pdf"), 
+             filename = paste0(params$plots_directory, "/", datatype, "/top10_regulons_ks_",
+                               params$condition, "_average_heatmap.pdf"), 
              width = 5, height = 6)
 }
 ```
