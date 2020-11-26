@@ -62,6 +62,7 @@ Pipeline output
 ===============
 
 _adjacencies.csv    # gives strength of evidence for association between TF and targets
+_adjacencies_wCor.csv # gives correlation to the associations between TF and targets
 _reg.csv    # modules of TFs and their target genes (not been refined to regulons)
 _aucell.csv   # activity of identified gene regulatory modules within each cell
 
@@ -146,7 +147,31 @@ def arboreto_with_multiprocessing(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["grn_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform(arboreto_with_multiprocessing, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_adjacencies.tsv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_reg.csv")
+@transform(arboreto_with_multiprocessing, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_adjacencies.tsv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_adjacencies_wCor.csv")
+def pyscenic_add_cor(infiles, outfile):
+    '''
+    Add Pearson correlations based on TF-gene expression to the network adjacencies output from the
+    GRN step, and output these to a new adjacencies file
+    '''
+    adjacencies = infiles[0]
+    expression_matrix = infiles[1]
+
+    if PARAMS["add_cor_other_options"] == None:
+        add_cor_other_options = ""
+    else:
+        add_cor_other_options = PARAMS["add_cor_other_options"]
+
+    statement = """pyscenic add_cor
+                    %(adjacencies)s
+                    %(expression_matrix)s
+                    %(add_cor_other_options)s
+                    -o %(outfile)s"""
+
+    P.run(statement, job_threads = PARAMS["add_cor_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+
+
+
+@transform(pyscenic_add_cor, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_adjacencies_wCor.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_reg.csv")
 def pyscenic_ctx(infiles, outfile):
     '''
     Regulons are derived from adjacencies

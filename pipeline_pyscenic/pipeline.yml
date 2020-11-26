@@ -15,6 +15,10 @@ grn:
     tfs_list: resources.dir/lambert2018.txt
     other_options: -t    # add -t if csv file is genes (rows) x cells (columns)
 
+add_cor:
+        threads: 5
+        other_options: -t  # add -t if csv file is genes (rows) x cells (columns)
+
 ctx:
     threads: 5   # 10
     annotations: resources.dir/motifs-v9-nr.hgnc-m0.001-o0.0.tbl
