@@ -1,0 +1,26 @@
+# YAML file for pipeline_pyscenic_downstream.py
+
+cluster:
+    queue_manager: slurm
+    queue: batch
+
+job:
+    condaenv: pyscenic
+
+aucell:
+    tab: -t     # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
+    threads: 8     # 15
+
+regulons:
+    threads: 8    # 15
+
+binarize:
+    tab: -t     # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
+    custom_aucell_thresholds: # data.dir/custom_aucell_thresholds.csv      # optional path to custom AUCell thresholds file
+    threads: 20    # max is 20
+
+rss_zscore:
+    annotation_files: data.dir/merged_all_cluster_annotation.csv,data.dir/merged_all_stimulation_annotation.csv    # can be multiple paths separated by a comma (no space)
+    tab: -t      # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
+    threads: 5
+
