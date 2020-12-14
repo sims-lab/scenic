@@ -1,26 +1,30 @@
 # YAML file for pyscenic_pipeline.py
 
 cluster:
-    queue: batchq
+    queue_manager: slurm
+    queue: batch
+
+job:
+    condaenv: pyscenic
 
 filtering:
-    threads: 2
+    threads: 6
     input_format: csv     # either h5ad or csv
     UMI_counts: 3
     min_percent: 0.01
     other_options: # --downsample --cell_number 200000     # only use for h5ad file format
 
+add_cor:
+    threads: 5
+    other_options: -t  # add -t if csv file is genes (rows) x cells (columns)
+
 grn:
-    threads: 5   # 18
+    threads: 8   # 18
     tfs_list: resources.dir/lambert2018.txt
     other_options: -t    # add -t if csv file is genes (rows) x cells (columns)
 
-add_cor:
-        threads: 5
-        other_options: -t  # add -t if csv file is genes (rows) x cells (columns)
-
 ctx:
-    threads: 5   # 10
+    threads: 8   # 10
     annotations: resources.dir/motifs-v9-nr.hgnc-m0.001-o0.0.tbl
     # the name of the file that contains the motif annotations to use
     database_fname:
@@ -30,6 +34,6 @@ ctx:
     other_options: -t     # --mask_dropouts, add -t if csv file is genes (rows) x cells (columns)
 
 aucell:
-    threads: 5   # 18
+    threads: 8   # 18
     auc_threshold: 0.05
     other_options: -t     # add -t if csv file is genes (rows) x cells (columns)
