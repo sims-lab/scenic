@@ -17,7 +17,9 @@ from pyscenic.binarization import binarize
 os.environ['NUMEXPR_MAX_THREADS'] = '25'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/raw.dir/merged-all-1000_aucell.csv',
+parser.add_argument('--sample', default = 'merged-all',
+                    help = 'sample name')
+parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/normalised.dir/merged-all_aucell.csv',
                     help = 'Output from pyscenic aucell, matrix of AUCell scores')
 parser.add_argument('-t', action = 'store_true',
                     help = "whether to transpose the AUCell matrix - yes if started with csv file")
@@ -29,6 +31,8 @@ args = parser.parse_args()
 
 logging.basicConfig(filename = 'regulon_binarization.log', level = logging.DEBUG)
 logging.info(args)
+
+sample = args.sample
 
 if "raw" in args.aucell_output:
     datatype = "raw"
@@ -58,7 +62,7 @@ def plot_binarization(auc_mtx: pd.DataFrame, regulon_name: str, threshold: float
     ax.set_ylabel('#')
     ax.set_title(regulon_name)
 
-    plt.savefig("plots.dir/" + datatype + ".dir/" + regulon_name + "_auc_threshold.png")
+    plt.savefig("plots.dir/" + datatype + ".dir/" + sample + "_" + regulon_name + "_auc_threshold.png")
     plt.close()
 
 # Analysis
@@ -87,11 +91,11 @@ else:
 logging.info(binary_mtx.head())
 
 if args.custom_auc_thresholds is None:
-    binary_mtx.to_csv("pyscenic_results.dir/" + datatype + ".dir/binary_matrix.csv")
-    auc_thresholds.to_csv("pyscenic_results.dir/" + datatype + ".dir/aucell_thresholds.csv", header = False, index = True)
+    binary_mtx.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + "_binary_matrix.csv")
+    auc_thresholds.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + "_aucell_thresholds.csv", header = False, index = True)
 else:
-    binary_mtx.to_csv("pyscenic_results.dir/" + datatype + ".dir/binary_matrix_custom_thresholds.csv")
-    auc_thresholds.to_csv("pyscenic_results.dir/" + datatype + ".dir/aucell_thresholds.csv", header = False, index = True)
+    binary_mtx.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + "_binary_matrix_custom_thresholds.csv")
+    auc_thresholds.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + "_aucell_thresholds.csv", header = False, index = True)
 
 logging.info("Finished binarization")
 

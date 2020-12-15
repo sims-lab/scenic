@@ -29,14 +29,18 @@ PARAMS = P.get_parameters(
       "pipeline.yml"])
 
 @follows(mkdir("plots.dir"))
-@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"plots.dir/\1.dir/aucell_heatmap.png")
+@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"plots.dir/\1.dir/\2_aucell_heatmap.png")
 def aucell_heatmap(infile, outfile):
+
+    sample = infile.split("/")[2]
+    sample = sample.replace("_aucell.csv", "")
 
     exp_mtx = infile.replace("aucell.csv", "filtered-expression.csv")
 
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
 
     statement = """python %(PY_PATH)s/aucell_heatmap.py
+                --sample %(sample)s
                 --exp_mtx %(exp_mtx)s
                 --aucell_output %(infile)s
                 %(aucell_tab)s
@@ -44,19 +48,26 @@ def aucell_heatmap(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["aucell_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform("pyscenic_results.dir/*.dir/*_reg.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_reg.csv"), r"pyscenic_results.dir/\1.dir/regulons.csv")
+@transform("pyscenic_results.dir/*.dir/*_reg.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_reg.csv"), r"pyscenic_results.dir/\1.dir/\2_regulons.csv")
 def generate_regulons(infile, outfile):
+
+    sample = infile.split("/")[2]
+    sample = sample.replace("_reg.csv", "")
 
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
 
     statement = """python %(PY_PATH)s/generate_regulons.py
+                --sample %(sample)s
                 --ctx_output %(infile)s
                 """
 
     P.run(statement, job_threads = PARAMS["regulons_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"pyscenic_results.dir/\1.dir/aucell_thresholds.csv")
+@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"pyscenic_results.dir/\1.dir/\2_aucell_thresholds.csv")
 def regulon_binarization(infile, outfile):
+
+    sample = infile.split("/")[2]
+    sample = sample.replace("_aucell.csv", "")
 
     if PARAMS["binarize_tab"] == None:
         binarize_tab = ""
@@ -66,11 +77,12 @@ def regulon_binarization(infile, outfile):
     if PARAMS["binarize_custom_aucell_thresholds"] == None:
         custom_aucell_thresholds = ""
     else:
-        custom_aucell_thresholds = '--custom_auc_thresholds ' + PARAMS["binarize_custom_aucell_thresholds"]
+        custom_aucell_thresholds = "--custom_auc_thresholds " + PARAMS["binarize_custom_aucell_thresholds"]
 
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
 
     statement = """python %(PY_PATH)s/regulon_binarization.py
+                --sample %(sample)s
                 --aucell_output %(infile)s
                 %(binarize_tab)s
                 %(custom_aucell_thresholds)s
@@ -81,6 +93,9 @@ def regulon_binarization(infile, outfile):
 @transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"pyscenic_results.dir/\1.dir/\2_aucell_zscores.csv")
 def rss_zscore(infile, outfile):
 
+    sample = infile.split("/")[2]
+    sample = sample.replace("_aucell.csv", "")
+
     exp_mtx = infile.replace("aucell.csv", "filtered-expression.csv")
 
     if PARAMS["rss_zscore_tab"] == None:
@@ -88,9 +103,15 @@ def rss_zscore(infile, outfile):
     else:
         rss_zscore_tab = PARAMS["rss_zscore_tab"]
 
+    rss_zscore_annotation_files = PARAMS["rss_zscore_annotation_files"].split(",")
+    for i, annotation in enumerate(rss_zscore_annotation_files):
+        rss_zscore_annotation_files[i] = sample + annotation
+    rss_zscore_annotation_files = ",".join(rss_zscore_annotation_files)
+
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
 
     statement = """python %(PY_PATH)s/rss_zscore.py
+                --sample %(sample)s
                 --exp_mtx %(exp_mtx)s
                 --aucell_output %(infile)s
                 --annotation_files %(rss_zscore_annotation_files)s
@@ -103,7 +124,7 @@ def rss_zscore(infile, outfile):
 def full():
     pass
 
-def main(argv=None):
+def main(argv = None):
     if argv is None:
         argv = sys.argv
     P.main(argv)
