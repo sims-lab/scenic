@@ -61,10 +61,10 @@ This pipeline requires: cgatcore, pyscenic and dependencies
 Pipeline output
 ===============
 
-_adjacencies.csv    # gives strength of evidence for association between TF and targets
-_adjacencies_wCor.csv # gives correlation to the associations between TF and targets
-_reg.csv    # modules of TFs and their target genes (not been refined to regulons)
-_aucell.csv   # activity of identified gene regulatory modules within each cell
+adjacencies.csv    # gives strength of evidence for association between TF and targets
+adjacencies_wCor.csv    # gives correlation to the associations between TF and targets
+reg.csv    # modules of TFs and their target genes (not been refined to regulons)
+aucell.csv   # activity of identified gene regulatory modules within each cell
 
 
 """
@@ -84,11 +84,14 @@ PARAMS = P.get_parameters(
 
 @active_if(PARAMS["filtering_input_format"] == "csv")
 @follows(mkdir("pyscenic_results.dir"))
-@transform("data.dir/*_*-expression.csv", regex(r"data.dir/([^_]+)_(r.*|n.*)-expression.csv"), r"pyscenic_results.dir/\2.dir/\1_filtered-expression.csv")
+@transform("data.dir/*_*-expression.csv", regex(r"data.dir/([^_]+)_(r.*|n.*)-expression.csv"), r"pyscenic_results.dir/\2.dir/\1.dir/filtered-expression.csv")
 def gene_filtering(infile, outfile):
     '''
     Filtering of the input raw UMI expression matrix to remove genes expressed in few cells
     '''
+
+    sample = infile.split('/')[1]
+    sample = sample.split('_')[0]
 
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
 
@@ -125,7 +128,7 @@ def gene_filtering(infile, outfile):
 #     P.run(statement, job_threads = PARAMS["filtering_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
 # @transform([gene_filtering, extract_anndata], regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_adjacencies.tsv")
-@transform(gene_filtering, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_adjacencies.tsv")
+@transform(gene_filtering, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/adjacencies.tsv")
 def arboreto_with_multiprocessing(infile, outfile):
     '''
     Gene regulatory network inference
@@ -147,12 +150,13 @@ def arboreto_with_multiprocessing(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["grn_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform(arboreto_with_multiprocessing, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_adjacencies.tsv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_adjacencies_wCor.csv")
+@transform(arboreto_with_multiprocessing, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/adjacencies.tsv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/adjacencies_wCor.csv")
 def pyscenic_add_cor(infiles, outfile):
     '''
     Add Pearson correlations based on TF-gene expression to the network adjacencies output from the
     GRN step, and output these to a new adjacencies file
     '''
+
     adjacencies = infiles[0]
     expression_matrix = infiles[1]
 
@@ -162,16 +166,14 @@ def pyscenic_add_cor(infiles, outfile):
         add_cor_other_options = PARAMS["add_cor_other_options"]
 
     statement = """pyscenic add_cor
-                    %(adjacencies)s
-                    %(expression_matrix)s
-                    %(add_cor_other_options)s
-                    -o %(outfile)s"""
+                %(adjacencies)s
+                %(expression_matrix)s
+                %(add_cor_other_options)s
+                -o %(outfile)s"""
 
     P.run(statement, job_threads = PARAMS["add_cor_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-
-
-@transform(pyscenic_add_cor, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_adjacencies_wCor.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_reg.csv")
+@transform(pyscenic_add_cor, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/adjacencies_wCor.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/reg.csv")
 def pyscenic_ctx(infiles, outfile):
     '''
     Regulons are derived from adjacencies
@@ -194,18 +196,18 @@ def pyscenic_ctx(infiles, outfile):
         ctx_other_options = PARAMS["ctx_other_options"]
 
     statement = """pyscenic ctx
-                    -o %(outfile)s
-                    --annotations_fname %(ctx_annotations)s
-                    --num_workers %(ctx_threads)s
-                    --expression_mtx_fname %(expression_matrix)s
-                    %(ctx_other_options)s
-                    %(adjacencies)s
-                    %(database_fname_1)s
-                    %(database_fname_2)s"""
+                -o %(outfile)s
+                --annotations_fname %(ctx_annotations)s
+                --num_workers %(ctx_threads)s
+                --expression_mtx_fname %(expression_matrix)s
+                %(ctx_other_options)s
+                %(adjacencies)s
+                %(database_fname_1)s
+                %(database_fname_2)s"""
 
     P.run(statement, job_threads = PARAMS["ctx_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform(pyscenic_ctx, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_reg.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_aucell.csv")
+@transform(pyscenic_ctx, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/reg.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/aucell.csv")
 def pyscenic_aucell(infiles, outfile):
     '''
     Characterise cells by enrichment of previously discovered regulons
@@ -234,7 +236,7 @@ def pyscenic_aucell(infiles, outfile):
 def full():
     pass
 
-def main(argv=None):
+def main(argv = None):
     if argv is None:
         argv = sys.argv
     P.main(argv)
