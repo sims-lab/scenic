@@ -103,11 +103,6 @@ def rss_zscore(infile, outfile):
     else:
         rss_zscore_tab = PARAMS["rss_zscore_tab"]
 
-    # rss_zscore_annotation_files = PARAMS["rss_zscore_annotation_files"].split(",")
-    # for i, annotation in enumerate(rss_zscore_annotation_files):
-    #     rss_zscore_annotation_files[i] = sample + annotation
-    # rss_zscore_annotation_files = ",".join(rss_zscore_annotation_files)
-
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
 
     statement = """python %(PY_PATH)s/rss_zscore.py

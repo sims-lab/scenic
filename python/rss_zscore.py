@@ -18,9 +18,9 @@ os.environ['NUMEXPR_MAX_THREADS'] = '5'
 parser = argparse.ArgumentParser()
 parser.add_argument('--sample', default = 'merged-all',
                     help = 'sample name')
-parser.add_argument('--exp_mtx', default = 'pyscenic_results.dir/normalised.dir/merged-all_filtered-expression.csv',    # genes x cells
+parser.add_argument('--exp_mtx', default = 'pyscenic_results.dir/normalised.dir/merged-all.dir/filtered-expression.csv',    # genes x cells
                     help = 'path to h5ad-formatted hdf5 file containing AnnData object')
-parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/normalised.dir/merged-all_aucell.csv',
+parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/normalised.dir/merged-all.dir/aucell.csv',
                     help = 'Output from pyscenic aucell, matrix of AUCell scores')
 parser.add_argument('--annotation_input', default = 'stimulation-annotation.csv,cluster-annotation.csv',
                     help = 'files containing mapping between cell barcodes (1st column) and annotations of interest e.g. clusters (2nd column)')
@@ -69,9 +69,9 @@ else:
     auc_mtx = pd.read_csv(args.aucell_output, index_col = 0)
 
 for annotation_name in annotation_dict.keys():
-    rss_louvain = regulon_specificity_scores(auc_mtx, annotation_dict[annotation_name])
-    rss_louvain.insert(0, annotation_name, rss_louvain.index.values)
-    rss_louvain.to_csv('pyscenic_results.dir/' + datatype + '.dir/' + sample + '.dir/' + annotation_name + '_RSS.csv', index = False)
+    rss = regulon_specificity_scores(auc_mtx, annotation_dict[annotation_name])
+    rss.insert(0, annotation_name, rss.index.values)
+    rss.to_csv('pyscenic_results.dir/' + datatype + '.dir/' + sample + '.dir/' + annotation_name + '_RSS.csv', index = False)
 
 logging.info("Calculated regulon specificity scores")
 
