@@ -20,6 +20,6 @@ binarize:
     threads: 20    # max is 20
 
 rss_zscore:
-    annotation_files: _cluster_annotation.csv,_tissue_annotation.csv    # ending of annotation files, comma separated (no space)
+    annotation_input: cluster-annotation.csv,tissue-annotation.csv    # ending of annotation files, comma separated (no space), only one underscore at the beginning
     tab: -t      # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
     threads: 5

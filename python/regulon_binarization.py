@@ -62,7 +62,7 @@ def plot_binarization(auc_mtx: pd.DataFrame, regulon_name: str, threshold: float
     ax.set_ylabel('#')
     ax.set_title(regulon_name)
 
-    plt.savefig("plots.dir/" + datatype + ".dir/" + sample + "_" + regulon_name + "_auc_threshold.png")
+    plt.savefig("plots.dir/" + datatype + ".dir/" + sample + ".dir/" + regulon_name + "_auc_threshold.png")
     plt.close()
 
 # Analysis
@@ -91,11 +91,11 @@ else:
 logging.info(binary_mtx.head())
 
 if args.custom_auc_thresholds is None:
-    binary_mtx.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + "_binary_matrix.csv")
-    auc_thresholds.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + "_aucell_thresholds.csv", header = False, index = True)
+    binary_mtx.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + ".dir/binary_matrix.csv")
+    auc_thresholds.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + ".dir/aucell_thresholds.csv", header = False, index = True)
 else:
-    binary_mtx.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + "_binary_matrix_custom_thresholds.csv")
-    auc_thresholds.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + "_aucell_thresholds.csv", header = False, index = True)
+    binary_mtx.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + ".dir/binary_matrix_custom_thresholds.csv")
+    auc_thresholds.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + ".dir/aucell_thresholds.csv", header = False, index = True)
 
 logging.info("Finished binarization")
 

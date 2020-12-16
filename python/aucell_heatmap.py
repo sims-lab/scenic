@@ -57,7 +57,7 @@ for i,x in enumerate(percentiles):
 ax.set_xlabel('# of genes')
 ax.set_ylabel('# of cells')
 fig.tight_layout()
-plt.savefig("plots.dir/" + datatype + ".dir/" + sample + "_number_of_genes_expressed_above_AUC_thresholds.png")
+plt.savefig("plots.dir/" + datatype + ".dir/" + sample + ".dir/number_of_genes_expressed_above_AUC_thresholds.png")
 plt.close()
 
 # Heatmap of AUCell scores
@@ -68,6 +68,6 @@ else:
 
 logging.info("Read in AUCell matrix")
 sns_plot = sns.clustermap(auc_mtx, figsize = (12, 12))
-sns_plot.savefig("plots.dir/" + datatype + ".dir/" + sample + "_aucell_heatmap.png")
+sns_plot.savefig("plots.dir/" + datatype + ".dir/" + sample + ".dir/aucell_heatmap.png")
 
 logging.info("Plotted heatmap of AUCell scores")

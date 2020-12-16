@@ -29,11 +29,11 @@ PARAMS = P.get_parameters(
       "pipeline.yml"])
 
 @follows(mkdir("plots.dir"))
-@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"plots.dir/\1.dir/\2_aucell_heatmap.png")
+@transform("pyscenic_results.dir/*.dir/*.dir/aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/aucell.csv"), r"plots.dir/\1.dir/\2.dir/aucell_heatmap.png")
 def aucell_heatmap(infile, outfile):
 
     sample = infile.split("/")[2]
-    sample = sample.replace("_aucell.csv", "")
+    sample = sample.replace(".dir", "")
 
     exp_mtx = infile.replace("aucell.csv", "filtered-expression.csv")
 
@@ -48,11 +48,11 @@ def aucell_heatmap(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["aucell_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform("pyscenic_results.dir/*.dir/*_reg.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_reg.csv"), r"pyscenic_results.dir/\1.dir/\2_regulons.csv")
+@transform("pyscenic_results.dir/*.dir/*.dir/reg.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/reg.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/regulons.csv")
 def generate_regulons(infile, outfile):
 
     sample = infile.split("/")[2]
-    sample = sample.replace("_reg.csv", "")
+    sample = sample.replace(".dir", "")
 
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
 
@@ -63,11 +63,11 @@ def generate_regulons(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["regulons_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"pyscenic_results.dir/\1.dir/\2_aucell_thresholds.csv")
+@transform("pyscenic_results.dir/*.dir/*.dir/aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/aucell.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/aucell_thresholds.csv")
 def regulon_binarization(infile, outfile):
 
     sample = infile.split("/")[2]
-    sample = sample.replace("_aucell.csv", "")
+    sample = sample.replace(".dir", "")
 
     if PARAMS["binarize_tab"] == None:
         binarize_tab = ""
@@ -90,11 +90,11 @@ def regulon_binarization(infile, outfile):
 
     P.run(statement, job_threads = PARAMS["binarize_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
-@transform("pyscenic_results.dir/*.dir/*_aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_aucell.csv"), r"pyscenic_results.dir/\1.dir/\2_aucell_zscores.csv")
+@transform("pyscenic_results.dir/*.dir/*.dir/aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/aucell.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/aucell_zscores.csv")
 def rss_zscore(infile, outfile):
 
     sample = infile.split("/")[2]
-    sample = sample.replace("_aucell.csv", "")
+    sample = sample.replace(".dir", "")
 
     exp_mtx = infile.replace("aucell.csv", "filtered-expression.csv")
 
@@ -103,10 +103,10 @@ def rss_zscore(infile, outfile):
     else:
         rss_zscore_tab = PARAMS["rss_zscore_tab"]
 
-    rss_zscore_annotation_files = PARAMS["rss_zscore_annotation_files"].split(",")
-    for i, annotation in enumerate(rss_zscore_annotation_files):
-        rss_zscore_annotation_files[i] = sample + annotation
-    rss_zscore_annotation_files = ",".join(rss_zscore_annotation_files)
+    # rss_zscore_annotation_files = PARAMS["rss_zscore_annotation_files"].split(",")
+    # for i, annotation in enumerate(rss_zscore_annotation_files):
+    #     rss_zscore_annotation_files[i] = sample + annotation
+    # rss_zscore_annotation_files = ",".join(rss_zscore_annotation_files)
 
     PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
 
@@ -114,7 +114,7 @@ def rss_zscore(infile, outfile):
                 --sample %(sample)s
                 --exp_mtx %(exp_mtx)s
                 --aucell_output %(infile)s
-                --annotation_files %(rss_zscore_annotation_files)s
+                --annotation_input %(rss_zscore_annotation_input)s
                 %(rss_zscore_tab)s
                 """
 
