@@ -12,35 +12,34 @@ output:
       smooth_scroll: yes
       toc_depth: 6
 params:
-  working_dir: "~/Documents/CNCB/proj009/Vincent_proj009/cellranger/Latest_RMD/Results/SCENIC"
+  working_dir: "/Users/lgarner/Documents/Klenerman_group/2020/Analysis/10x_blood_and_liver_MAIT/pyscenic_test"
   num_workers: 6    # number of cores
   datatype: "raw"    # raw or normalised
-  results_directory: "./results.dir/pyscenic_r"
-  plots_directory: "./plots.dir/pyscenic_r"
-  celltype: "celltype"    # column name for celltype annotations in files
-  condition: "stim"    # column name for condition annotation in files or "None"
-  celltype_condition: "celltype_stim"    # column name for celltype_condition columns in files or "None"
-  zscores_celltype: "./auc_zscores_celltype_annotations.csv"    # Z scores based on AUCell scores for celltypes
-  zscores_condition: "./auc_zscores_thirst2_condition_annotations.csv"    # Z scores based on AUCell scores for condition or "None"
-  zscores_celltype_condition: "./auc_zscores_celltype_ann_stim_annotations.csv"    # Z scores based on AUCell scores for celltype_condition joint or "None"
-
-  zscore_filter_threshold_celltype: 3    # Z score filter threshold for celltype specific scores for heatmap
-  zscore_filter_threshold_condition: 1    # Z score filter threshold for condition specific scores for heatmap or "None"
-  zscore_filter_threshold_celltype_condition: 4    # Z score filter threshold for celltype + condition specific scores for heatmap or "None"
-  binary_mtx: "./binary_matrix.csv" # binary AUCell scores for each cell
-  annotation_celltype: "data.dir/celltype_annotations.csv"    # csv file with cellid & celltype annotations for each cell
-  annotation_condition: "data.dir/thirst2_condition_annotations.csv"    # csv file with cellid & condition annotation for each cell or "None"
-  annotation_celltype_condition: "data.dir/broad_celltype_stim_annotations.csv"    # csv file with cellid & celltype_condition annotation for each cell or "None"
-  binary_heatmap_cell_annotations : "data.dir/broad_celltype_annotations.csv" # csv file with cellid and annotation data per cell for binary all cells heatmap or "None"
-  rss_celltype: "./broad_celltype_annotations_RSS.csv"    # RSS scores per regulon for celltype 
-  rss_condition: "./thirst2_condition_annotations_RSS.csv"    # RSS scores per regulon for condition or "None"
-  rss_celltype_condition: "./broad_celltype_stim_annotations_RSS.csv"    # RSS scores per regulon for celltype_condition or "None"
+  results_directory: "../pyscenic_results.dir/raw.dir/all-samples.dir/pyscenic_r.dir"
+  plots_directory: "../plots.dir/raw.dir/all-samples.dir/pyscenic_r.dir"
+  celltype: "SCT_snn_res.0.5"    # column name for celltype annotations in files
+  condition: "tissue"    # column name for condition annotation in files or "None"
+  celltype_condition: "None"    # column name for celltype_condition columns in files or "None"
+  zscores_celltype: "../pyscenic_results.dir/raw.dir/all-samples.dir/aucell_zscores_cluster-annotation.csv"    # Z scores based on AUCell scores for celltypes
+  zscores_condition: "../pyscenic_results.dir/raw.dir/all-samples.dir/aucell_zscores_tissue-annotation.csv"    # Z scores based on AUCell scores for condition or "None"
+  zscores_celltype_condition: "None"    # Z scores based on AUCell scores for celltype_condition joint or "None"
+  zscore_filter_threshold_celltype: 1.5    # Z score filter threshold for celltype specific scores for heatmap
+  zscore_filter_threshold_condition: 1.5    # Z score filter threshold for condition specific scores for heatmap or "None"
+  zscore_filter_threshold_celltype_condition: "None"    # Z score filter threshold for celltype + condition specific scores for heatmap or "None"
+  binary_mtx: "../pyscenic_results.dir/raw.dir/all-samples.dir/binary_matrix.csv" # binary AUCell scores for each cell
+  annotation_celltype: "../data.dir/all-samples_cluster-annotation.csv"    # csv file with cellid & celltype annotations for each cell
+  annotation_condition: "../data.dir/all-samples_tissue-annotation.csv"    # csv file with cellid & condition annotation for each cell or "None"
+  annotation_celltype_condition: "None"    # csv file with cellid & celltype_condition annotation for each cell or "None"
+  binary_heatmap_cell_annotations : "../data.dir/liver_cluster-annotation.csv" # csv file with cellid and annotation data per cell for binary all cells heatmap or "None"
+  rss_celltype: "../pyscenic_results.dir/raw.dir/all-samples.dir/cluster-annotation_RSS.csv"    # RSS scores per regulon for celltype 
+  rss_condition: "../pyscenic_results.dir/raw.dir/all-samples.dir/tissue-annotation_RSS.csv"    # RSS scores per regulon for condition or "None"
+  rss_celltype_condition: "None"    # RSS scores per regulon for celltype_condition or "None"
   species: "human"    # fly, human, mouse or None
-  regulon_genes: "./regulons_lucy.csv"    # regulon files generatated from pipeline_pyscenic.py or "None"
-  exp_matrix: "data.dir/test.csv"    # filtered-raw-expression.csv exp matrix generated in step 1 of pipeline_pyscenic.py for background for pathway analysis or "None"
+  regulon_genes: "../pyscenic_results.dir/raw.dir/all-samples.dir/regulons.csv"    # regulon files generatated from pipeline_pyscenic.py or "None"
+  exp_matrix: "../pyscenic_results.dir/raw.dir/all-samples.dir/filtered-expression.csv"    # filtered-raw-expression.csv exp matrix generated in step 1 of pipeline_pyscenic.py for background for pathway analysis or "None"
   go_ont_option: "BP"    # "BP", "MF", "CC" or "ALL" for all three. Default is "MF" in ClusterProfiler
   wilcoxon_celltype_top: "wilcoxon_celltype_top10.csv"    # or "None"
-  wilcoxon_condition_top: "wilcoxon_condition_reference_top10.csv"    # or "None"
+  wilcoxon_condition_top: "wilcoxon_condition_reference_top10.csv"   # or "None", results from comparison to reference condition
   ks_celltype_top: "ks_celltype_top10.csv"    # or "None"
   ks_condition_top: "ks_condition_top10.csv"    # or "None"
   pvaluecutoff: 0.05    # Pathway enrichment p-value cutoff
@@ -114,7 +113,7 @@ library(foreach)
 library(msigdbr)
 library(org.Mm.eg.db)
 library(org.Hs.eg.db)
-try({library(org.Dm.eg.db)})
+try({library(org.Dm.eg.db)}, silent = TRUE)
 
 registerDoMC(cores = params$num_workers)
 theme_set(theme_bw())
@@ -176,27 +175,28 @@ zscore_heatmap <- function(zscores_df, annotation_type = params$celltype,
     mat2[is.na(mat2)] <- ""
     annotation_type <- as.character(annotation_type)
     
-    plot_1 <- pheatmap(
-      mat = (t(zscores_specific_wide)), 
-      color = colorRampPalette((brewer.pal(n = 8, name = "YlGnBu")))(100), 
-      cluster_cols = F, cluster_rows = F, na_col = "white", 
-      display_numbers = as.matrix(t(mat2)), number_format = "%.1f", 
-      fontsize_row = 8, legend = T, number_color = "black", 
-      fontsize = 8, fontsize_col = 8, 
-      main = paste0(annotation_type,' specific TF regulators - Z score'))
-    
-    save_pheatmap_pdf(
-      plot_1, 
-      filename = paste0(plots_directory, '/', annotation_type, 
-                        '_specific_zscore_', filter_threshold, '_heatmap.pdf'),
-      width = plot_width, height = plot_height)
-   
-    saveRDS(
-      plot_1, 
-      file = paste0(plots_directory, '/', annotation_type, '_specific_zscore_',
-                    filter_threshold, '_heatmap.rds'))
-    print(plot_1)
-    
+      if (ncol(zscores_specific_wide) >= 2) {
+        plot_1 <- pheatmap(
+          mat = (t(zscores_specific_wide)), 
+          color = colorRampPalette((brewer.pal(n = 8, name = "YlGnBu")))(100), 
+          cluster_cols = F, cluster_rows = F, na_col = "white", 
+          display_numbers = as.matrix(t(mat2)), number_format = "%.1f", 
+          fontsize_row = 8, legend = T, number_color = "black", 
+          fontsize = 8, fontsize_col = 8, 
+          main = paste0(annotation_type,' specific TF regulators - Z score'))
+        
+        save_pheatmap_pdf(
+          plot_1, 
+          filename = paste0(plots_directory, '/', annotation_type, 
+                            '_specific_zscore_', filter_threshold, '_heatmap.pdf'),
+          width = plot_width, height = plot_height)
+       
+        saveRDS(
+          plot_1, 
+          file = paste0(plots_directory, '/', annotation_type, '_specific_zscore_',
+                        filter_threshold, '_heatmap.rds'))
+        print(plot_1)
+      }
     } else {
     print("Annotation Z scores below the filter threshold parameter")
     }
@@ -553,57 +553,60 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
   if (annotation_type != "None") {
      wilcoxon_top10 <- read_csv(file = paste0(results_directory, "/", wilcoxon_f))
      wilcoxon_top10 <- wilcoxon_top10 %>% 
-       dplyr::select(regulon,!!sym(annotation_type))
+       dplyr::select(regulon, !!sym(annotation_type))
      
-     cc_subset <- merge(comparecluster_df, wilcoxon_top10, 
-                        by.x = "Cluster", by.y = "regulon")
-     gsize <- as.numeric(sub("/\\d+$", "", as.character(cc_subset$GeneRatio)))
-     gcsize <- as.numeric(sub("^\\d+/", "", as.character(cc_subset$GeneRatio)))
-     cc_subset$GeneRatio <- gsize/gcsize
-     cluster <- paste(as.character(cc_subset$Cluster), "(", gcsize, ")", sep = "")
-     lv <- unique(cluster)[order(as.numeric(unique(cc_subset$Cluster)))]
-     cc_subset$Cluster <- factor(cluster, levels = lv)
-     
-     plot_data <- cc_subset %>% 
-       group_by(Cluster) %>% 
-       dplyr::arrange(p.adjust) %>%
-       dplyr::slice(1:showCategory)
-     idx <-  order(plot_data$Cluster)
-     plot_data$Description <- factor(plot_data$Description,
-                                     levels = rev(unique(plot_data$Description[idx])))
-     
-     p1 <- ggplot(plot_data, 
-                  aes_string(x = "Cluster",y = "Description", color = "p.adjust"))
-     p1 <- p1 + 
-       geom_point(aes(size = Count)) + 
-       theme(axis.text.y = element_text(size = 7), 
-             axis.text.x = element_text(size=7, angle = 45, hjust = 1)) +
-       scale_color_viridis_c(direction = 1, alpha = 0.8) + 
-       xlab("") + 
-       ylab("") + 
-       theme(legend.title = element_text(size = 7), 
-             legend.text = element_text(size = 7))
-     p1 <- p1 + 
-       facet_wrap(.~ .data[[annotation_type]], scales = "free", shrink = T, 
-                  nrow = plot_row,ncol = plot_col) + 
-       theme(strip.background = element_blank(), 
-             strip.text = element_text(face = "bold", size = 7))
-     p1 <- p1 +
-       enrichplot_theme
-     
-     ggsave(
-       plot = p1,
-       filename = paste0(pathwaydb, "_plot_", stat_test, "_top10", 
-                         annotation_type, "_", test_type, ".pdf"), 
-       path = paste0(plots_directory, "/"), dpi = 300, 
-       units = units, height = plot_height, width = plot_width)
-     
-     saveRDS(
-       p1, 
-       file = paste0(plots_directory, "/", pathwaydb, "_plot_", stat_test, 
-                     "_top10_", annotation_type, "_", test_type, ".rds"))
-     print(p1)
-     
+     if (nrow(comparecluster_df) > 0 & nrow(wilcoxon_top10) > 0) {
+       cc_subset <- merge(comparecluster_df, wilcoxon_top10, 
+                          by.x = "Cluster", by.y = "regulon")
+       gsize <- as.numeric(sub("/\\d+$", "", as.character(cc_subset$GeneRatio)))
+       gcsize <- as.numeric(sub("^\\d+/", "", as.character(cc_subset$GeneRatio)))
+       cc_subset$GeneRatio <- gsize/gcsize
+       cluster <- paste(as.character(cc_subset$Cluster), "(", gcsize, ")", sep = "")
+       lv <- unique(cluster)[order(as.numeric(unique(cc_subset$Cluster)))]
+       cc_subset$Cluster <- factor(cluster, levels = lv)
+       
+       plot_data <- cc_subset %>% 
+         group_by(Cluster) %>% 
+         dplyr::arrange(p.adjust) %>%
+         dplyr::slice(1:showCategory)
+       idx <-  order(plot_data$Cluster)
+       plot_data$Description <- factor(plot_data$Description,
+                                       levels = rev(unique(plot_data$Description[idx])))
+       
+       p1 <- ggplot(plot_data, 
+                    aes_string(x = "Cluster",y = "Description", color = "p.adjust"))
+       p1 <- p1 + 
+         geom_point(aes(size = Count)) + 
+         theme(axis.text.y = element_text(size = 7), 
+               axis.text.x = element_text(size=7, angle = 45, hjust = 1)) +
+         scale_color_viridis_c(direction = 1, alpha = 0.8) + 
+         xlab("") + 
+         ylab("") + 
+         theme(legend.title = element_text(size = 7), 
+               legend.text = element_text(size = 7))
+       p1 <- p1 + 
+         facet_wrap(.~ .data[[annotation_type]], scales = "free", shrink = T, 
+                    nrow = plot_row,ncol = plot_col) + 
+         theme(strip.background = element_blank(), 
+               strip.text = element_text(face = "bold", size = 7))
+       p1 <- p1 +
+         enrichplot_theme
+       
+       ggsave(
+         plot = p1,
+         filename = paste0(pathwaydb, "_plot_", stat_test, "_top10", 
+                           annotation_type, "_", test_type, ".pdf"), 
+         path = paste0(plots_directory, "/"), dpi = 300, 
+         units = units, height = plot_height, width = plot_width)
+       
+       saveRDS(
+         p1, 
+         file = paste0(plots_directory, "/", pathwaydb, "_plot_", stat_test, 
+                       "_top10_", annotation_type, "_", test_type, ".rds"))
+       print(p1)
+     } else {
+       print("comparecluster_df or wilcoxon_top10 variable is empty")
+     }
   } else {
     print("Wilcoxon/KS files cell or condition column name in results file not inputted in function")
   }
@@ -913,12 +916,6 @@ if (params$celltype != "None") {
 } else {
   print("No celltypes were provided")
 }
-
-
-zscore_heatmap(zscores_df = zscores_celltype, 
-               plot_height = 9, plot_width = 8, 
-               filter_threshold = zscore_filter_threshold_celltype, 
-               annotation_type = celltype)
 ```
 
 ## Condition
@@ -1136,8 +1133,6 @@ saveRDS(GO_res, paste0(results_directory, "/GO_res.rds"))
 ### Top 10 wilcoxon regulons by celltype (one vs all)
 
 ```{r, fig.height = 7, fig.width = 8}
-message("Completed up to line 1133")
-
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$celltype != "None") {
   wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,
@@ -1152,7 +1147,6 @@ if (params$celltype != "None") {
 ### Top 10 wilcoxon regulons by condition (compared to reference)
 
 ```{r, fig.height = 4, fig.width = 6}
-message("Completed up to line 1149")
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
   wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top, 
@@ -1166,7 +1160,6 @@ if (params$condition != "None") {
 ### Top 10 KS regulons by celltype (one vs all)
 
 ```{r, fig.height = 4, fig.width = 6}
-message("Completed up to line 1163")
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$celltype != "None") {
   wilcoxon_pathway_plot(wilcoxon_f = params$ks_celltype_top, 
@@ -1232,6 +1225,7 @@ if (params$celltype_condition != "None") {
 Reactome_res <- reactome_pathway_enrichment(regulons_f = params$regulon_genes, 
                                             pathway_db = "enrichPathway", 
                                             maxGSSize = params$maxGSSize)
+saveRDS(Reactome_res, paste0(results_directory, "/Reactome_res.rds"))
 ```
 
 ### Top 10 wilcoxon regulons by celltype (one vs all)
@@ -1329,6 +1323,7 @@ msigdb_c2_res <- msigdb_pathway_enrichment(regulons_f = params$regulon_genes,
                                            pathway_db = "enricher", 
                                            maxGSSize = params$maxGSSize, 
                                            msigdb_geneset = params$msigdb_geneset)
+saveRDS(msigdb_c2_res, paste0(results_directory, "/msigdb_c2_res.rds"))
 ```
 
 ### Top 10 wilcoxon regulons by celltype (one vs all)
@@ -1428,6 +1423,7 @@ if (params$celltype_condition != "None") {
 KEGG_res <- kegg_pathway_enrichment(regulons_f = params$regulon_genes,
                                     pathway_db = "enrichKEGG", 
                                     maxGSSize = params$maxGSSize)
+saveRDS(KEGG_res, paste0(results_directory, "/KEGG_res.rds"))
 ```
 
 ### Top 10 wilcoxon regulons by celltype (one vs all)
