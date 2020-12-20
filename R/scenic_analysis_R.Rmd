@@ -14,29 +14,29 @@ output:
 params:
   working_dir: "/Users/lgarner/Documents/Klenerman_group/2020/Analysis/10x_blood_and_liver_MAIT/pyscenic_test"
   num_workers: 6    # number of cores
-  datatype: "raw"    # raw or normalised
-  results_directory: "../pyscenic_results.dir/raw.dir/all-samples.dir/pyscenic_r.dir"
-  plots_directory: "../plots.dir/raw.dir/all-samples.dir/pyscenic_r.dir"
+  datatype: "normalised"    # raw or normalised
+  results_directory: "../pyscenic_results.dir/normalised.dir/all-samples.dir/pyscenic_r.dir"
+  plots_directory: "../plots.dir/normalised.dir/all-samples.dir/pyscenic_r.dir"
   celltype: "SCT_snn_res.0.5"    # column name for celltype annotations in files
   condition: "tissue"    # column name for condition annotation in files or "None"
   celltype_condition: "None"    # column name for celltype_condition columns in files or "None"
-  zscores_celltype: "../pyscenic_results.dir/raw.dir/all-samples.dir/aucell_zscores_cluster-annotation.csv"    # Z scores based on AUCell scores for celltypes
-  zscores_condition: "../pyscenic_results.dir/raw.dir/all-samples.dir/aucell_zscores_tissue-annotation.csv"    # Z scores based on AUCell scores for condition or "None"
+  zscores_celltype: "../pyscenic_results.dir/normalised.dir/all-samples.dir/aucell_zscores_cluster-annotation.csv"    # Z scores based on AUCell scores for celltypes
+  zscores_condition: "../pyscenic_results.dir/normalised.dir/all-samples.dir/aucell_zscores_tissue-annotation.csv"    # Z scores based on AUCell scores for condition or "None"
   zscores_celltype_condition: "None"    # Z scores based on AUCell scores for celltype_condition joint or "None"
   zscore_filter_threshold_celltype: 1.5    # Z score filter threshold for celltype specific scores for heatmap
   zscore_filter_threshold_condition: 1.5    # Z score filter threshold for condition specific scores for heatmap or "None"
   zscore_filter_threshold_celltype_condition: "None"    # Z score filter threshold for celltype + condition specific scores for heatmap or "None"
-  binary_mtx: "../pyscenic_results.dir/raw.dir/all-samples.dir/binary_matrix.csv" # binary AUCell scores for each cell
+  binary_mtx: "../pyscenic_results.dir/normalised.dir/all-samples.dir/binary_matrix.csv" # binary AUCell scores for each cell
   annotation_celltype: "../data.dir/all-samples_cluster-annotation.csv"    # csv file with cellid & celltype annotations for each cell
   annotation_condition: "../data.dir/all-samples_tissue-annotation.csv"    # csv file with cellid & condition annotation for each cell or "None"
   annotation_celltype_condition: "None"    # csv file with cellid & celltype_condition annotation for each cell or "None"
-  binary_heatmap_cell_annotations : "../data.dir/liver_cluster-annotation.csv" # csv file with cellid and annotation data per cell for binary all cells heatmap or "None"
-  rss_celltype: "../pyscenic_results.dir/raw.dir/all-samples.dir/cluster-annotation_RSS.csv"    # RSS scores per regulon for celltype 
-  rss_condition: "../pyscenic_results.dir/raw.dir/all-samples.dir/tissue-annotation_RSS.csv"    # RSS scores per regulon for condition or "None"
+  binary_heatmap_cell_annotations : "../data.dir/all-samples_cluster-annotation.csv" # csv file with cellid and annotation data per cell for binary all cells heatmap or "None"
+  rss_celltype: "../pyscenic_results.dir/normalised.dir/all-samples.dir/cluster-annotation_RSS.csv"    # RSS scores per regulon for celltype
+  rss_condition: "../pyscenic_results.dir/normalised.dir/all-samples.dir/tissue-annotation_RSS.csv"    # RSS scores per regulon for condition or "None"
   rss_celltype_condition: "None"    # RSS scores per regulon for celltype_condition or "None"
   species: "human"    # fly, human, mouse or None
-  regulon_genes: "../pyscenic_results.dir/raw.dir/all-samples.dir/regulons.csv"    # regulon files generatated from pipeline_pyscenic.py or "None"
-  exp_matrix: "../pyscenic_results.dir/raw.dir/all-samples.dir/filtered-expression.csv"    # filtered-raw-expression.csv exp matrix generated in step 1 of pipeline_pyscenic.py for background for pathway analysis or "None"
+  regulon_genes: "../pyscenic_results.dir/normalised.dir/all-samples.dir/regulons.csv"    # regulon files generatated from pipeline_pyscenic.py or "None"
+  exp_matrix: "../pyscenic_results.dir/normalised.dir/all-samples.dir/filtered-expression.csv"    # filtered-raw-expression.csv exp matrix generated in step 1 of pipeline_pyscenic.py for background for pathway analysis or "None"
   go_ont_option: "BP"    # "BP", "MF", "CC" or "ALL" for all three. Default is "MF" in ClusterProfiler
   wilcoxon_celltype_top: "wilcoxon_celltype_top10.csv"    # or "None"
   wilcoxon_condition_top: "wilcoxon_condition_reference_top10.csv"   # or "None", results from comparison to reference condition
@@ -140,10 +140,10 @@ rss_plot <- list(
         axis.ticks.x = element_blank(),
         axis.title = element_text(size = 8),
         strip.background = element_blank(),
-        panel.background = element_rect(fil = "white"), 
-        panel.grid.major = element_blank(), 
-        strip.text.x = element_text(size = 8), 
-        panel.grid.minor = element_blank(), 
+        panel.background = element_rect(fil = "white"),
+        panel.grid.major = element_blank(),
+        strip.text.x = element_text(size = 8),
+        panel.grid.minor = element_blank(),
         axis.text.y = element_text(size = 6)))
 
 save_pheatmap_pdf <- function(x, filename, width = 7,height = 7) {
@@ -155,44 +155,44 @@ save_pheatmap_pdf <- function(x, filename, width = 7,height = 7) {
   dev.off()
 }
 
-zscore_heatmap <- function(zscores_df, annotation_type = params$celltype, 
+zscore_heatmap <- function(zscores_df, annotation_type = params$celltype,
                            filter_threshold = 3, plot_height = 6, plot_width = 8,
                            units = "in") {
   if (max(zscores_df$annotation_zscore) >= as.numeric(filter_threshold)) {
-    zscores_specific <- zscores_df %>% 
+    zscores_specific <- zscores_df %>%
       dplyr::filter((annotation_zscore) >= as.numeric(filter_threshold))
-    
-    zscores_specific_wide <- zscores_specific %>% 
-      dplyr::select(regulon, annotation,annotation_zscore) %>% 
+
+    zscores_specific_wide <- zscores_specific %>%
+      dplyr::select(regulon, annotation,annotation_zscore) %>%
       tidyr::pivot_wider(names_from = annotation, values_from = annotation_zscore)
-    zscores_specific_wide <- zscores_specific_wide %>% 
+    zscores_specific_wide <- zscores_specific_wide %>%
       column_to_rownames(var = "regulon")
     zscores_specific_wide <- as.matrix(zscores_specific_wide)
-    
+
     mat2 <- as.data.frame(zscores_specific_wide)
     mat2 <- mat2 %>%
       mutate_if(is.numeric, round, digits = 1)
     mat2[is.na(mat2)] <- ""
     annotation_type <- as.character(annotation_type)
-    
+
       if (ncol(zscores_specific_wide) >= 2) {
         plot_1 <- pheatmap(
-          mat = (t(zscores_specific_wide)), 
-          color = colorRampPalette((brewer.pal(n = 8, name = "YlGnBu")))(100), 
-          cluster_cols = F, cluster_rows = F, na_col = "white", 
-          display_numbers = as.matrix(t(mat2)), number_format = "%.1f", 
-          fontsize_row = 8, legend = T, number_color = "black", 
-          fontsize = 8, fontsize_col = 8, 
+          mat = (t(zscores_specific_wide)),
+          color = colorRampPalette((brewer.pal(n = 8, name = "YlGnBu")))(100),
+          cluster_cols = F, cluster_rows = F, na_col = "white",
+          display_numbers = as.matrix(t(mat2)), number_format = "%.1f",
+          fontsize_row = 8, legend = T, number_color = "black",
+          fontsize = 8, fontsize_col = 8,
           main = paste0(annotation_type,' specific TF regulators - Z score'))
-        
+
         save_pheatmap_pdf(
-          plot_1, 
-          filename = paste0(plots_directory, '/', annotation_type, 
+          plot_1,
+          filename = paste0(plots_directory, '/', annotation_type,
                             '_specific_zscore_', filter_threshold, '_heatmap.pdf'),
           width = plot_width, height = plot_height)
-       
+
         saveRDS(
-          plot_1, 
+          plot_1,
           file = paste0(plots_directory, '/', annotation_type, '_specific_zscore_',
                         filter_threshold, '_heatmap.rds'))
         print(plot_1)
@@ -211,129 +211,129 @@ binary_celltype_perc_heatmap <- function(cellInfo_f = params$annotation_celltype
     cellInfo <- read.csv(cellInfo_f)
     rownames(cellInfo) <- cellInfo$cellid
     cellInfo[, 2] <- as.factor(cellInfo[, 2])
-  
+
     binary_mtx <- read_csv(file = binary_mtx_f)
     minPerc <- minPerc
     binary_mtx.merge <- merge(binary_mtx, cellInfo, by.x = "X1", by.y = "cellid")
-    
-    regulon_activity_binarised_celltype <- binary_mtx.merge %>% 
-      dplyr::group_by_if(is.factor) %>% 
+
+    regulon_activity_binarised_celltype <- binary_mtx.merge %>%
+      dplyr::group_by_if(is.factor) %>%
       dplyr::select(-c(X1)) %>%
-      summarise_all(.funs = mean) %>% 
+      summarise_all(.funs = mean) %>%
       tibble::column_to_rownames(var = {{annotation_type}})
     regulon_activity_binarised_celltype <- t(regulon_activity_binarised_celltype)
-    
+
     binaryActPerc_subset <- regulon_activity_binarised_celltype[which(rowSums(regulon_activity_binarised_celltype > minPerc) > 0), ]
-    
+
     plot_1 <- pheatmap::pheatmap(
       binaryActPerc_subset, fontsize = 7,
-      color = colorRampPalette(c("white","pink","red"))(100), 
+      color = colorRampPalette(c("white","pink","red"))(100),
       breaks = seq(0, 1, length.out = 100),
-      treeheight_row = 10, treeheight_col = 10, border_color = NA, 
-      clustering_method = "ward.D2", cluster_rows = cluster_rows, 
+      treeheight_row = 10, treeheight_col = 10, border_color = NA,
+      clustering_method = "ward.D2", cluster_rows = cluster_rows,
       cluster_cols = cluster_cols)
-    
+
     save_pheatmap_pdf(
-      plot_1, 
-      filename = paste0(plots_directory, '/', annotation_type, '_regulon_active_perc_cells', minPerc, '_heatmap.pdf'),    
+      plot_1,
+      filename = paste0(plots_directory, '/', annotation_type, '_regulon_active_perc_cells', minPerc, '_heatmap.pdf'),
       width = plot_width, height = plot_height)
-    
+
     saveRDS(
-      plot_1, 
+      plot_1,
       file = paste0(plots_directory, '/', annotation_type, '_regulon_active_perc_cells',
                     minPerc, '_heatmap.rds'))
 
     print(plot_1)
-    
+
     } else {
-    print("Annotation csv file not provided") 
+    print("Annotation csv file not provided")
     }
 }
 
-binary_auc_heatmap <- function(binary_mtx_f = params$binary_mtx, 
+binary_auc_heatmap <- function(binary_mtx_f = params$binary_mtx,
                                annotation_col_f = params$binary_heatmap_cell_annotations,
                                plot_height = 9, plot_width = 12) {
   binary_mtx <- read_csv(file = binary_mtx_f)
-  binary_mtx <- binary_mtx %>% 
+  binary_mtx <- binary_mtx %>%
     tibble::column_to_rownames(var = "X1")
-  
+
   annotation_col <- read.csv(file = annotation_col_f)
-  annotation_col <- annotation_col %>% 
+  annotation_col <- annotation_col %>%
     column_to_rownames(var="cellid")
-  
+
   plot_1 <- pheatmap::pheatmap(
-    (t(binary_mtx)), fontsize = 6, 
+    (t(binary_mtx)), fontsize = 6,
     color = colorRampPalette((brewer.pal(n = 9, name = "Greys")))(10),
-    treeheight_row = 10, treeheight_col = 10, border_color = NA, 
-    clustering_method = "ward.D2", show_rownames = T, fontsize_row = 8, 
+    treeheight_row = 10, treeheight_col = 10, border_color = NA,
+    clustering_method = "ward.D2", show_rownames = T, fontsize_row = 8,
     scale = "none", show_colnames = F, annotation_col = annotation_col, legend = F)
-  
+
   save_pheatmap_pdf(
-    plot_1, 
+    plot_1,
     filename = paste0(plots_directory, "/binary_regulon_activity_allcells_heatmap.pdf"),
     width = plot_width, height = plot_height)
-  
+
   saveRDS(
-    plot_1, 
+    plot_1,
     file = paste0(plots_directory, "/binary_regulon_activity_allcells_heatmap.rds"))
   print(plot_1)
 }
 
 RSS_annotation_plot <- function(annotation_type = params$celltype,
-                                rss_f = params$rss_celltype, units = "in", 
+                                rss_f = params$rss_celltype, units = "in",
                                 plot_height = 5, plot_width = 7) {
   if (annotation_type != "None") {
     rss_scores <- read_csv(file = rss_f)
     annotation_type <- as.character(annotation_type)
     colnames(rss_scores)[1] <- "annotation"
-    
-    rss_scores_long <- rss_scores %>% 
-      tidyr:: pivot_longer(-1, names_to = "Regulon", values_to = "RSS") %>%  
-      mutate(across(where(is_character), as_factor)) %>% 
+
+    rss_scores_long <- rss_scores %>%
+      tidyr:: pivot_longer(-1, names_to = "Regulon", values_to = "RSS") %>%
+      mutate(across(where(is_character), as_factor)) %>%
       group_by(annotation) %>%
-      dplyr::arrange(desc(RSS), .by_group = T) %>% 
+      dplyr::arrange(desc(RSS), .by_group = T) %>%
       mutate(order = row_number())
-    rss_scores_long$ID <- paste0(rss_scores_long$annotation, "_", 
+    rss_scores_long$ID <- paste0(rss_scores_long$annotation, "_",
                                  rss_scores_long$Regulon)
 
-    rss_scores_long_2 <- rss_scores %>% 
+    rss_scores_long_2 <- rss_scores %>%
       tidyr:: pivot_longer(-1, names_to = "Regulon", values_to = "RSS") %>%
-      mutate(across(where(is_character), as_factor)) %>% 
-      group_by(annotation) %>% 
-      dplyr::arrange(desc(RSS), .by_group = T) %>% 
-      mutate(order = row_number()) %>% 
+      mutate(across(where(is_character), as_factor)) %>%
+      group_by(annotation) %>%
+      dplyr::arrange(desc(RSS), .by_group = T) %>%
+      mutate(order = row_number()) %>%
       dplyr::slice(1:5)
     rss_scores_long_2$label <- rss_scores_long_2$Regulon
     rss_scores_long_2$ID <- paste0(rss_scores_long_2$annotation,
                                    "_", rss_scores_long_2$Regulon)
-    rss_scores_long_2 <- rss_scores_long_2 %>% 
+    rss_scores_long_2 <- rss_scores_long_2 %>%
       dplyr::select(annotation, ID, label)
 
     rss_scores_long_final <- merge(rss_scores_long, rss_scores_long_2,
                                    by = "ID", all.x = T)
 
-    plot_1 <- rss_scores_long_final %>% 
-      ggplot(aes(x = order, y = RSS, group = annotation.x)) + 
+    plot_1 <- rss_scores_long_final %>%
+      ggplot(aes(x = order, y = RSS, group = annotation.x)) +
       geom_point(colour = "steelblue")
-    plot_1 <- plot_1 + 
-      geom_text_repel(aes(label = label), check_overlap = T, size = 2.5) + 
+    plot_1 <- plot_1 +
+      geom_text_repel(aes(label = label), check_overlap = T, size = 2.5) +
       facet_wrap(~annotation.x, scales = "free") +
       xlab("Regulon")
-    plot_1 <- plot_1 + 
+    plot_1 <- plot_1 +
       rss_plot
     plot_1
 
     ggsave(
-      plot = plot_1, 
+      plot = plot_1,
       filename = paste0("top_", annotation_type, "_specific_RSS_plot.pdf"),
       path = paste0(plots_directory, "/"), dpi = 300,
       units = units, height = plot_height, width = plot_width)
-    
+
     saveRDS(
-      plot_1, 
+      plot_1,
       file = paste0(plots_directory, "/top_", annotation_type, "_specific_RSS_plot.rds"))
     print(plot_1)
-    
+
     } else {
     print("No annotation type name string or annotation specific RSS score file provided as input")
     }
@@ -341,8 +341,8 @@ RSS_annotation_plot <- function(annotation_type = params$celltype,
 
 num_active_regulons_annotation <- function(cellInfo_f = params$annotation_celltype,
                                            binary_mtx_f = params$binary_mtx,
-                                           annotation_type = params$celltype, 
-                                           units = "in", plot_height = 3, 
+                                           annotation_type = params$celltype,
+                                           units = "in", plot_height = 3,
                                            plot_width = 9) {
   if (annotation_type != "None") {
     cellInfo <- read.csv(cellInfo_f)
@@ -351,54 +351,54 @@ num_active_regulons_annotation <- function(cellInfo_f = params$annotation_cellty
     binary_mtx <- read_csv(file = binary_mtx_f)
     annotation_type <- as.character(annotation_type)
     binary_mtx.merge <- merge(binary_mtx,cellInfo, by.x = "X1", by.y = "cellid")
-    
-    active_cells_per_regulon <- binary_mtx.merge %>% 
-      dplyr::group_by_if(is.factor) %>% 
+
+    active_cells_per_regulon <- binary_mtx.merge %>%
+      dplyr::group_by_if(is.factor) %>%
       dplyr::select(-c(X1)) %>%
       summarise_all(.funs = sum)
-    
-    active_cells_per_regulon_long <- active_cells_per_regulon %>% 
+
+    active_cells_per_regulon_long <- active_cells_per_regulon %>%
       pivot_longer(-annotation_type, names_to = "Regulon", values_to = "N_active_cells")
-    
+
     nRegulons_per_annotation <- active_cells_per_regulon_long %>%
-      dplyr::group_by(across(1)) %>% 
-      summarise(count = sum(N_active_cells > 0)) %>% 
+      dplyr::group_by(across(1)) %>%
+      summarise(count = sum(N_active_cells > 0)) %>%
       arrange(desc(count))
     colnames(nRegulons_per_annotation)[1] <- "annotation"
-    n_annotation_active_per_regulon <- active_cells_per_regulon_long %>% 
-      group_by(across(2)) %>% 
+    n_annotation_active_per_regulon <- active_cells_per_regulon_long %>%
+      group_by(across(2)) %>%
       summarise(count = sum(N_active_cells > 0))
 
-    p1 <-  ggplot(data = nRegulons_per_annotation, 
-                  aes(x = reorder(annotation, -count), y = count)) + 
-      geom_bar(stat = "identity", fill = "steelblue") + 
-      xlab(annotation_type) + 
-      ylab(paste0("Number of active Regulons per ", annotation_type)) + 
-      ggtitle(paste0("Number of active regulons per ", annotation_type)) + 
+    p1 <-  ggplot(data = nRegulons_per_annotation,
+                  aes(x = reorder(annotation, -count), y = count)) +
+      geom_bar(stat = "identity", fill = "steelblue") +
+      xlab(annotation_type) +
+      ylab(paste0("Number of active Regulons per ", annotation_type)) +
+      ggtitle(paste0("Number of active regulons per ", annotation_type)) +
       barplot_theme
     p1
-    
+
     ggsave(
       plot = p1,
       filename = paste0("barplot_active_regulons_per_",
-                        annotation_type, ".pdf"), 
-      path = paste0(plots_directory, "/"), 
+                        annotation_type, ".pdf"),
+      path = paste0(plots_directory, "/"),
       dpi = 300, units = units, height = plot_height, width = plot_width)
-    
+
     saveRDS(
-      p1, 
-      file = paste0(plots_directory, "/barplot_active_regulons_per_", 
+      p1,
+      file = paste0(plots_directory, "/barplot_active_regulons_per_",
                     annotation_type, ".rds"))
     print(p1)
-    
+
     } else {
       print("Cell type annotation files not provided")
   }
 }
 
-num_annotation_per_regulon <- function(cellInfo_f = params$annotation_celltype, 
+num_annotation_per_regulon <- function(cellInfo_f = params$annotation_celltype,
                                        binary_mtx_f = params$binary_mtx,
-                                       annotation_type = params$celltype, 
+                                       annotation_type = params$celltype,
                                        units = "in", plot_height = 3,
                                        plot_width = 9) {
   if (annotation_type != "None") {
@@ -408,49 +408,49 @@ num_annotation_per_regulon <- function(cellInfo_f = params$annotation_celltype,
     binary_mtx <- read_csv(file = binary_mtx_f)
     annotation_type <- as.character(annotation_type)
     binary_mtx.merge <- merge(binary_mtx, cellInfo, by.x = "X1", by.y = "cellid")
-    
-    active_cells_per_regulon <- binary_mtx.merge %>% 
-      dplyr::group_by_if(is.factor) %>% 
+
+    active_cells_per_regulon <- binary_mtx.merge %>%
+      dplyr::group_by_if(is.factor) %>%
       dplyr::select(-c(X1)) %>%
       summarise_all(.funs = sum)
-    
-    active_cells_per_regulon_long <- active_cells_per_regulon %>% 
+
+    active_cells_per_regulon_long <- active_cells_per_regulon %>%
       pivot_longer(-annotation_type, names_to = "Regulon", values_to = "N_active_cells")
-    
-    n_annotation_active_per_regulon <- active_cells_per_regulon_long %>% 
-      group_by(across(2)) %>% 
+
+    n_annotation_active_per_regulon <- active_cells_per_regulon_long %>%
+      group_by(across(2)) %>%
       summarise(count = sum(N_active_cells > 0))
 
     p2 <- ggplot(data = n_annotation_active_per_regulon,
-                 aes(x = reorder(Regulon,-count), y = count)) + 
-      geom_bar(stat = "identity", fill = "steelblue") + 
-      xlab("Regulons") + 
-      ylab(paste0("Number of ", annotation_type, " active per regulon")) + ggtitle(paste0("Number of ", annotation_type, " active per regulon")) + 
+                 aes(x = reorder(Regulon,-count), y = count)) +
+      geom_bar(stat = "identity", fill = "steelblue") +
+      xlab("Regulons") +
+      ylab(paste0("Number of ", annotation_type, " active per regulon")) + ggtitle(paste0("Number of ", annotation_type, " active per regulon")) +
       barplot_theme
     p2
-    
+
     ggsave(
       plot = p2,
-      filename = paste0("barplot_number_of", annotation_type, "active_per_regulon.pdf"), 
+      filename = paste0("barplot_number_of", annotation_type, "active_per_regulon.pdf"),
       path = paste0(plots_directory, "/"), dpi = 300,
       units = units, height = plot_height, width = plot_width)
     saveRDS(p2, file = paste0(plots_directory, "/barplot_number_of",
                               annotation_type, "active_per_regulon.rds"))
     print(p2)
-    
+
     } else {
     print("Cell type annotation files not provided")
     }
 }
 
-barplot_theme <- list(theme(axis.text.x = element_text(angle = 45, hjust = 1, 
+barplot_theme <- list(theme(axis.text.x = element_text(angle = 45, hjust = 1,
                                                        vjust = 1, size = 5),
-                            axis.title = element_text(size = 6), 
+                            axis.title = element_text(size = 6),
                             plot.title = element_text(size = 7)))
 
-regulon_pathway_enrichment <- function(regulons_f = params$regulon_gene, 
-                                       ont_option = params$go_ont_option, 
-                                       maxGSSize = params$maxGSSize, 
+regulon_pathway_enrichment <- function(regulons_f = params$regulon_gene,
+                                       ont_option = params$go_ont_option,
+                                       maxGSSize = params$maxGSSize,
                                        pvalueCutoff = as.numeric(params$pvaluecutoff),
                                        qvalueCutoff = as.numeric(params$qvaluecutoff),
                                        pathway_db ="enrichGO") {
@@ -463,64 +463,64 @@ regulon_pathway_enrichment <- function(regulons_f = params$regulon_gene,
   background <- read_csv(file = params$exp_matrix)
   universe <- as.character(background$X1)
   rm(background)
-  
+
   if (params$species == "fly") {
-    res <- compareCluster(geneClusters = genes_list, 
-                          universe = universe, pAdjustMethod = "BH", 
-                          pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, 
+    res <- compareCluster(geneClusters = genes_list,
+                          universe = universe, pAdjustMethod = "BH",
+                          pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff,
                           maxGSSize = maxGSSize, keyType = "SYMBOL", OrgDb = org.Dm.eg.db,
                           readable = F, ont = ont_option , fun = "enrichGO")
-    
+
     if (pathway_db == "enrichGO") {
       res_simplify <- clusterProfiler::simplify(x = res, cutoff = 0.7)
       saveRDS(
-        res_simplify, 
+        res_simplify,
         file = paste0(results_directory, "/", pathway_db,
                       "_simplified_regulons_results.rds"))
       return(res_simplify)
-      
+
     } else {
       saveRDS(
-        res, 
+        res,
         file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
       return(res)
     }
-    
+
   } else if(params$species == "human") {
-    res <- compareCluster(geneClusters = genes_list, 
-                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, 
-                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, 
+    res <- compareCluster(geneClusters = genes_list,
+                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff,
+                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize,
                           keyType = "SYMBOL", OrgDb = org.Hs.eg.db, readable = F,
                           ont = ont_option, fun = "enrichGO", universe = universe)
-    
+
     if (pathway_db == "enrichGO") {
       res_simplify <- clusterProfiler::simplify(x = res, cutoff = 0.7)
       saveRDS(
-        res_simplify, 
+        res_simplify,
         file = paste0(results_directory, "/", pathway_db, "_simplified_regulons_results.rds"))
       return(res_simplify)
-      
+
     } else {
        saveRDS(
-         res, 
+         res,
          file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
        return(res)
     }
 
   } else if (params$species == "mouse"){
-    res <- compareCluster(geneClusters = genes_list, 
-                          universe = universe, pAdjustMethod = "BH", 
-                          pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, 
+    res <- compareCluster(geneClusters = genes_list,
+                          universe = universe, pAdjustMethod = "BH",
+                          pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff,
                           maxGSSize = maxGSSize, fun = "enrichGO" )
-    
+
     if (pathway_db == "enrichGO") {
       res_simplify <- clusterProfiler::simplify(x = res, cutoff = 0.7)
       saveRDS(
-        res_simplify, 
-        file = paste0(results_directory, "/", pathway_db, 
+        res_simplify,
+        file = paste0(results_directory, "/", pathway_db,
                       "_simplified_regulons_results.rds"))
       return(res_simplify)
-      
+
     } else {
        saveRDS(
          res,file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
@@ -535,28 +535,28 @@ regulon_pathway_enrichment <- function(regulons_f = params$regulon_gene,
   }
 }
 
-enrichplot_theme <- list(theme(legend.title = element_text(size = 7), 
+enrichplot_theme <- list(theme(legend.title = element_text(size = 7),
                                legend.text = element_text(size = 7),
-                               strip.background = element_blank(), 
-                               strip.text = element_text(face = "bold",size = 7), 
+                               strip.background = element_blank(),
+                               strip.text = element_text(face = "bold",size = 7),
                                axis.text.y = element_text(size = 7)))
 
-wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top, 
-                                  annotation_type = "test_cell_type", 
-                                  test_type = "one_vs_all", 
-                                  plot_height = 8, plot_width = 8, units = "in", 
+wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
+                                  annotation_type = "test_cell_type",
+                                  test_type = "one_vs_all",
+                                  plot_height = 8, plot_width = 8, units = "in",
                                   showCategory = 8, stat_test = "wilcoxon",
-                                  pathwaydb = "GO_term", res_f = GO_res, 
+                                  pathwaydb = "GO_term", res_f = GO_res,
                                   plot_row = 2, plot_col = 2){
   comparecluster_df <- res_f@compareClusterResult
 
   if (annotation_type != "None") {
      wilcoxon_top10 <- read_csv(file = paste0(results_directory, "/", wilcoxon_f))
-     wilcoxon_top10 <- wilcoxon_top10 %>% 
+     wilcoxon_top10 <- wilcoxon_top10 %>%
        dplyr::select(regulon, !!sym(annotation_type))
-     
+
      if (nrow(comparecluster_df) > 0 & nrow(wilcoxon_top10) > 0) {
-       cc_subset <- merge(comparecluster_df, wilcoxon_top10, 
+       cc_subset <- merge(comparecluster_df, wilcoxon_top10,
                           by.x = "Cluster", by.y = "regulon")
        gsize <- as.numeric(sub("/\\d+$", "", as.character(cc_subset$GeneRatio)))
        gcsize <- as.numeric(sub("^\\d+/", "", as.character(cc_subset$GeneRatio)))
@@ -564,44 +564,44 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
        cluster <- paste(as.character(cc_subset$Cluster), "(", gcsize, ")", sep = "")
        lv <- unique(cluster)[order(as.numeric(unique(cc_subset$Cluster)))]
        cc_subset$Cluster <- factor(cluster, levels = lv)
-       
-       plot_data <- cc_subset %>% 
-         group_by(Cluster) %>% 
+
+       plot_data <- cc_subset %>%
+         group_by(Cluster) %>%
          dplyr::arrange(p.adjust) %>%
          dplyr::slice(1:showCategory)
        idx <-  order(plot_data$Cluster)
        plot_data$Description <- factor(plot_data$Description,
                                        levels = rev(unique(plot_data$Description[idx])))
-       
-       p1 <- ggplot(plot_data, 
+
+       p1 <- ggplot(plot_data,
                     aes_string(x = "Cluster",y = "Description", color = "p.adjust"))
-       p1 <- p1 + 
-         geom_point(aes(size = Count)) + 
-         theme(axis.text.y = element_text(size = 7), 
+       p1 <- p1 +
+         geom_point(aes(size = Count)) +
+         theme(axis.text.y = element_text(size = 7),
                axis.text.x = element_text(size=7, angle = 45, hjust = 1)) +
-         scale_color_viridis_c(direction = 1, alpha = 0.8) + 
-         xlab("") + 
-         ylab("") + 
-         theme(legend.title = element_text(size = 7), 
+         scale_color_viridis_c(direction = 1, alpha = 0.8) +
+         xlab("") +
+         ylab("") +
+         theme(legend.title = element_text(size = 7),
                legend.text = element_text(size = 7))
-       p1 <- p1 + 
-         facet_wrap(.~ .data[[annotation_type]], scales = "free", shrink = T, 
-                    nrow = plot_row,ncol = plot_col) + 
-         theme(strip.background = element_blank(), 
+       p1 <- p1 +
+         facet_wrap(.~ .data[[annotation_type]], scales = "free", shrink = T,
+                    nrow = plot_row,ncol = plot_col) +
+         theme(strip.background = element_blank(),
                strip.text = element_text(face = "bold", size = 7))
        p1 <- p1 +
          enrichplot_theme
-       
+
        ggsave(
          plot = p1,
-         filename = paste0(pathwaydb, "_plot_", stat_test, "_top10", 
-                           annotation_type, "_", test_type, ".pdf"), 
-         path = paste0(plots_directory, "/"), dpi = 300, 
+         filename = paste0(pathwaydb, "_plot_", stat_test, "_top10",
+                           annotation_type, "_", test_type, ".pdf"),
+         path = paste0(plots_directory, "/"), dpi = 300,
          units = units, height = plot_height, width = plot_width)
-       
+
        saveRDS(
-         p1, 
-         file = paste0(plots_directory, "/", pathwaydb, "_plot_", stat_test, 
+         p1,
+         file = paste0(plots_directory, "/", pathwaydb, "_plot_", stat_test,
                        "_top10_", annotation_type, "_", test_type, ".rds"))
        print(p1)
      } else {
@@ -612,7 +612,7 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
   }
 }
 
-reactome_pathway_enrichment <- function(regulons_f = params$regulon_gene, 
+reactome_pathway_enrichment <- function(regulons_f = params$regulon_gene,
                                         pathway_db = "enrichPathway",
                                         maxGSSize = params$maxGSSize,
                                         pvalueCutoff = as.numeric(params$pvaluecutoff),
@@ -624,9 +624,9 @@ reactome_pathway_enrichment <- function(regulons_f = params$regulon_gene,
   names(genes_list) <- regulon_genes$regulon_name
 
   background <- read_csv(file = params$exp_matrix)
-  
+
   if (params$species == "fly") {
-    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID", 
+    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID",
                   OrgDb = "org.Dm.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g = genes_list) %do% {
@@ -634,16 +634,16 @@ reactome_pathway_enrichment <- function(regulons_f = params$regulon_gene,
       id_list_g <- as.character(c(id_df_g$ENTREZID))
     }
     names(gene_id_list) <- names(genes_list)
-    
+
     res <- compareCluster(geneClusters = gene_id_list, universe = bg_id_v,
-                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, 
+                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff,
                           qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize,
                           organism = "fly", readable = T ,fun = pathway_db)
     saveRDS(
       res,
       file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
     return(res)
-    
+
   } else if (params$species == "human") {
     bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID",
                   OrgDb="org.Hs.eg.db")
@@ -653,18 +653,18 @@ reactome_pathway_enrichment <- function(regulons_f = params$regulon_gene,
       id_list_g <- as.character(c(id_df_g$ENTREZID))
     }
     names(gene_id_list) <- names(genes_list)
-    
-    res <- compareCluster(geneClusters = gene_id_list, pAdjustMethod = "BH", 
-                          pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, 
+
+    res <- compareCluster(geneClusters = gene_id_list, pAdjustMethod = "BH",
+                          pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff,
                           maxGSSize = maxGSSize, organism = "human", readable = T,
                           fun = pathway_db, universe = bg_id_v)
     saveRDS(
       res,
       file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
     return(res)
-    
+
   } else if (params$species == "mouse") {
-    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID", 
+    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID",
                   OrgDb = "org.Mm.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g=genes_list) %do% {
@@ -672,16 +672,16 @@ reactome_pathway_enrichment <- function(regulons_f = params$regulon_gene,
       id_list_g <- as.character(c(id_df_g$ENTREZID))
     }
     names(gene_id_list) <- names(genes_list)
-    
-    res <- compareCluster(geneClusters = gene_list, universe = bg_id_v, 
+
+    res <- compareCluster(geneClusters = gene_list, universe = bg_id_v,
                           pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff,
                           qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize,
                           organim = "mouse", readable = T, fun = pathway_db)
     saveRDS(
-      res, 
+      res,
       file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
     return(res)
-    
+
   } else if (params$species == "None") {
     print("No species information provided and relevant Organism dbi needs to be loaded from Bioconductor")
 
@@ -690,7 +690,7 @@ reactome_pathway_enrichment <- function(regulons_f = params$regulon_gene,
   }
 }
 
-kegg_pathway_enrichment <- function(regulons_f = params$regulon_gene, 
+kegg_pathway_enrichment <- function(regulons_f = params$regulon_gene,
                                     pathway_db = "enrichKEGG",
                                     maxGSSize = params$maxGSSize,
                                     pvalueCutoff = as.numeric(params$pvaluecutoff),
@@ -704,7 +704,7 @@ kegg_pathway_enrichment <- function(regulons_f = params$regulon_gene,
   background <- read_csv(file=params$exp_matrix)
 
   if (params$species == "fly") {
-    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID", 
+    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID",
                   OrgDb = "org.Dm.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g = genes_list) %do% {
@@ -712,18 +712,18 @@ kegg_pathway_enrichment <- function(regulons_f = params$regulon_gene,
       id_list_g <- as.character(c(id_df_g$ENTREZID))
     }
     names(gene_id_list) <- names(genes_list)
-    
-    res <- compareCluster(geneClusters = gene_id_list, universe = bg_id_v , 
-                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, 
-                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, 
+
+    res <- compareCluster(geneClusters = gene_id_list, universe = bg_id_v ,
+                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff,
+                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize,
                           organism = "dme", fun = pathway_db, keyType = "ncbi-geneid")
     saveRDS(
-      res, 
+      res,
       file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
     return(res)
-    
+
   } else if (params$species == "human") {
-    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID", 
+    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID",
                   OrgDb = "org.Hs.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g = genes_list) %do% {
@@ -731,9 +731,9 @@ kegg_pathway_enrichment <- function(regulons_f = params$regulon_gene,
       id_list_g <- as.character(c(id_df_g$ENTREZID))
     }
     names(gene_id_list) <- names(genes_list)
-    
-    res <- compareCluster(geneClusters = gene_id_list, pAdjustMethod = "BH", 
-                          pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff, 
+
+    res <- compareCluster(geneClusters = gene_id_list, pAdjustMethod = "BH",
+                          pvalueCutoff = pvalueCutoff, qvalueCutoff = qvalueCutoff,
                           maxGSSize = maxGSSize, organism = "hsa", fun = pathway_db,
                           universe = bg_id_v, keyType = "ncbi-geneid")
     saveRDS(
@@ -741,7 +741,7 @@ kegg_pathway_enrichment <- function(regulons_f = params$regulon_gene,
       file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
     return(res)
   } else if (params$species == "mouse") {
-    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID", 
+    bg_id <- bitr(background$X1, fromType = "SYMBOL", toType = "ENTREZID",
                   OrgDb = "org.Mm.eg.db")
     bg_id_v <- as.character(c(bg_id$ENTREZID))
     gene_id_list <- foreach(g = genes_list) %do% {
@@ -749,16 +749,16 @@ kegg_pathway_enrichment <- function(regulons_f = params$regulon_gene,
       id_list_g <- as.character(c(id_df_g$ENTREZID))
     }
     names(gene_id_list) <- names(genes_list)
-    
-    res <- compareCluster(geneClusters = gene_list, universe = bg_id_v, 
-                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, 
-                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, 
+
+    res <- compareCluster(geneClusters = gene_list, universe = bg_id_v,
+                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff,
+                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize,
                           organism = "mmu", fun = pathway_db, keyType = "ncbi-geneid")
     saveRDS(
-      res, 
+      res,
       file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
     return(res)
-    
+
   } else if (params$species == "None") {
     print("No species information provided and relevant Organism dbi needs to be loaded from Bioconductor")
 
@@ -767,9 +767,9 @@ kegg_pathway_enrichment <- function(regulons_f = params$regulon_gene,
   }
 }
 
-msigdb_pathway_enrichment <- function(regulons_f = params$regulon_gene, 
-                                      pathway_db = "enricher", 
-                                      maxGSSize = params$maxGSSize, 
+msigdb_pathway_enrichment <- function(regulons_f = params$regulon_gene,
+                                      pathway_db = "enricher",
+                                      maxGSSize = params$maxGSSize,
                                       pvalueCutoff = as.numeric(params$pvaluecutoff),
                                       qvalueCutoff = as.numeric(params$qvaluecutoff),
                                       msigdb_geneset = params$msigdb_geneset) {
@@ -782,54 +782,54 @@ msigdb_pathway_enrichment <- function(regulons_f = params$regulon_gene,
   background <- read_csv(file = params$exp_matrix)
   universe <- as.character(background$X1)
   rm(background)
-  
+
   if (params$species == "fly") {
     m_t2g <- msigdbr(species = "Drosophila melanogaster", category = msigdb_geneset) %>%
       dplyr::select(gs_name, gene_symbol)
-    
-    res <- compareCluster(geneClusters = genes_list, universe = universe, 
-                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, 
+
+    res <- compareCluster(geneClusters = genes_list, universe = universe,
+                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff,
                           qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize,
                           fun = "enricher", TERM2GENE = m_t2g)
     saveRDS(
-      res, 
+      res,
       file = paste0(results_directory, "/", pathway_db , "_regulons_results.rds"))
-    return(res) 
-    
+    return(res)
+
   } else if (params$species == "human") {
     m_t2g <- msigdbr(species = "Homo sapiens", category = msigdb_geneset) %>%
       dplyr::select(gs_name, gene_symbol)
-    
-    res <- compareCluster(geneClusters = genes_list, universe = universe, 
-                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, 
-                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, 
+
+    res <- compareCluster(geneClusters = genes_list, universe = universe,
+                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff,
+                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize,
                           fun = "enricher", TERM2GENE = m_t2g)
     saveRDS(
-      res, 
+      res,
       file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
     return(res)
 
   } else if(params$species == "mouse") {
     m_t2g <- msigdbr(species = "Mus musculus", category = msigdb_geneset) %>%
       dplyr::select(gs_name, gene_symbol)
-    
-    res <- compareCluster(geneClusters = genes_list, universe = universe, 
-                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff, 
-                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize, 
+
+    res <- compareCluster(geneClusters = genes_list, universe = universe,
+                          pAdjustMethod = "BH", pvalueCutoff = pvalueCutoff,
+                          qvalueCutoff = qvalueCutoff, maxGSSize = maxGSSize,
                           fun = "enricher", TERM2GENE = m_t2g)
     saveRDS(res,file = paste0(results_directory, "/", pathway_db, "_regulons_results.rds"))
     return(res)
-    
+
   } else if (params$species == "None") {
     print("No species information provided and relevant Organism dbi needs to be loaded from Bioconductor")
-    
+
   } else {
     print("Current options are fly, human, mouse or None")
   }
 }
 
-rss_pathway_plot <- function(rss_f = params$rss_celltype, 
-                             annotation_type = params$celltype, 
+rss_pathway_plot <- function(rss_f = params$rss_celltype,
+                             annotation_type = params$celltype,
                              plot_height = 8, plot_width = 8, units = "in",
                              showCategory = 8, pathwaydb = "GO_term", res_f = GO_res,
                              plot_row = 2, plot_col = 2) {
@@ -838,15 +838,15 @@ rss_pathway_plot <- function(rss_f = params$rss_celltype,
     rss_scores <- read_csv(file = rss_f)
     annotation_type <- as.character(annotation_type)
     colnames(rss_scores)[1] <- "annotation"
-    
+
     rss_scores_long <- rss_scores %>%
-      tidyr:: pivot_longer(-1, names_to = "Regulon", values_to = "RSS") %>%   
-      mutate(across(where(is_character), as_factor)) %>% 
-      group_by(annotation) %>% 
-      dplyr::arrange(desc(RSS), .by_group = T) %>% 
-      dplyr::slice(1:10) %>% 
+      tidyr:: pivot_longer(-1, names_to = "Regulon", values_to = "RSS") %>%
+      mutate(across(where(is_character), as_factor)) %>%
+      group_by(annotation) %>%
+      dplyr::arrange(desc(RSS), .by_group = T) %>%
+      dplyr::slice(1:10) %>%
       dplyr::select(annotation, Regulon)
-    
+
    cc_subset <- merge(comparecluster_df, rss_scores_long, by.x = "Cluster", by.y = "Regulon")
    gsize <- as.numeric(sub("/\\d+$", "", as.character(cc_subset$GeneRatio)))
    gcsize <- as.numeric(sub("^\\d+/", "", as.character(cc_subset$GeneRatio)))
@@ -854,45 +854,45 @@ rss_pathway_plot <- function(rss_f = params$rss_celltype,
    cluster <- paste(as.character(cc_subset$Cluster), "(", gcsize, ")", sep = "")
    lv <- unique(cluster)[order(as.numeric(unique(cc_subset$Cluster)))]
    cc_subset$Cluster <- factor(cluster, levels = lv)
-   
-   plot_data <- cc_subset %>% 
-     group_by(Cluster) %>% 
-     dplyr::arrange(p.adjust) %>% 
+
+   plot_data <- cc_subset %>%
+     group_by(Cluster) %>%
+     dplyr::arrange(p.adjust) %>%
      dplyr::slice(1:7)
    idx <-  order(plot_data$Cluster)
    plot_data$Description <- factor(plot_data$Description,
                                    levels = rev(unique(plot_data$Description[idx])))
-   
-   p1 <- ggplot(plot_data, 
+
+   p1 <- ggplot(plot_data,
                 aes_string(x = "Cluster", y = "Description", color = "p.adjust"))
-   p1 <- p1 + 
-     geom_point(aes(size=Count)) + 
-     theme(axis.text.y = element_text(size = 7), 
-           axis.text.x = element_text(size = 7, angle = 45, hjust = 1)) + 
-     scale_color_viridis_c(direction = 1, alpha = 0.8) + 
-     xlab("") + 
-     ylab("") + 
+   p1 <- p1 +
+     geom_point(aes(size=Count)) +
+     theme(axis.text.y = element_text(size = 7),
+           axis.text.x = element_text(size = 7, angle = 45, hjust = 1)) +
+     scale_color_viridis_c(direction = 1, alpha = 0.8) +
+     xlab("") +
+     ylab("") +
      theme(legend.title = element_text(size = 7),
            legend.text = element_text(size = 7))
-   p1 <- p1 + 
-     facet_wrap(.~ annotation, scales = "free", shrink = T, nrow = plot_row, ncol = plot_col) + 
-     theme(strip.background = element_blank(), 
+   p1 <- p1 +
+     facet_wrap(.~ annotation, scales = "free", shrink = T, nrow = plot_row, ncol = plot_col) +
+     theme(strip.background = element_blank(),
            strip.text = element_text(face = "bold", size = 7))
-   p1 <- p1 + 
+   p1 <- p1 +
      enrichplot_theme
-   
+
    ggsave(
      plot = p1,
-     filename = paste0(pathwaydb, "_plot_RSS_scores_top10", annotation_type, ".pdf"), 
-     path = paste0(plots_directory, "/"), dpi = 300, 
+     filename = paste0(pathwaydb, "_plot_RSS_scores_top10", annotation_type, ".pdf"),
+     path = paste0(plots_directory, "/"), dpi = 300,
      units = units, height = plot_height, width = plot_width)
-   
+
     saveRDS(
-      p1, 
-      file = paste0(plots_directory, "/", pathwaydb, "_plot_RSS_scores_top10_", 
+      p1,
+      file = paste0(plots_directory, "/", pathwaydb, "_plot_RSS_scores_top10_",
                     annotation_type, ".rds"))
     print(p1)
-    
+
   } else {
     print("Annotation type not inputted")
   }
@@ -909,9 +909,9 @@ rss_pathway_plot <- function(rss_f = params$rss_celltype,
 # This is based on the 2nd column name in params$annotation_celltype file
 if (params$celltype != "None") {
   zscores_celltype <- read.csv(file = params$zscores_celltype, header = T)
-  zscore_heatmap(zscores_df = zscores_celltype, 
-                 plot_height = 9, plot_width = 8, 
-                 filter_threshold = params$zscore_filter_threshold_celltype, 
+  zscore_heatmap(zscores_df = zscores_celltype,
+                 plot_height = 9, plot_width = 8,
+                 filter_threshold = params$zscore_filter_threshold_celltype,
                  annotation_type = params$celltype)
 } else {
   print("No celltypes were provided")
@@ -926,9 +926,9 @@ if (params$celltype != "None") {
 # This is based on the 2nd column name in params$annotation_celltype file
 if (params$condition != "None" & params$zscore_filter_threshold_condition !="None") {
   zscores_condition <- read.csv(file = params$zscores_condition, header = T)
-  zscore_heatmap(zscores_df = zscores_condition, 
-                 plot_height = 6, plot_width = 9, 
-                 annotation_type = params$condition, 
+  zscore_heatmap(zscores_df = zscores_condition,
+                 plot_height = 6, plot_width = 9,
+                 annotation_type = params$condition,
                  filter_threshold = params$zscore_filter_threshold_condition)
 } else {
   print("No condition only Z score file provided")
@@ -944,7 +944,7 @@ if (params$condition != "None" & params$zscore_filter_threshold_condition !="Non
 if (params$celltype_condition != "None") {
   zscores_celltype_condition <- read.csv(file = params$zscores_celltype_condition, header = T)
   zscore_heatmap(zscores_df = zscores_celltype_condition,
-                 plot_height = 15, plot_width = 10, 
+                 plot_height = 15, plot_width = 10,
                  annotation_type = params$celltype_condition,
                  filter_threshold = params$zscore_filter_threshold_celltype_condition)
 } else {
@@ -964,8 +964,8 @@ if (params$celltype_condition != "None") {
 # This is based on the 2nd column name in params$annotation_celltype file
 if (params$celltype != "None"){
   binary_celltype_perc_heatmap(cellInfo_f = params$annotation_celltype,
-                               binary_mtx_f = params$binary_mtx, 
-                               minPerc = 0.70, 
+                               binary_mtx_f = params$binary_mtx,
+                               minPerc = 0.70,
                                annotation_type = params$celltype,
                                plot_height = 7, plot_width = 10, units = "in")
 } else {
@@ -980,9 +980,9 @@ if (params$celltype != "None"){
 # options: celltype, condition or celltype_condition
 # This is based on the 2nd column name in params$annotation_celltype file
 if (params$condition != "None") {
-  binary_celltype_perc_heatmap(plot_height = 4, plot_width = 6, 
-                               annotation_type = params$condition, 
-                               cellInfo_f = params$annotation_condition, 
+  binary_celltype_perc_heatmap(plot_height = 4, plot_width = 6,
+                               annotation_type = params$condition,
+                               cellInfo_f = params$annotation_condition,
                                minPerc = 0.60, cluster_rows = F, cluster_cols = F)
 } else {
   print("No condition information provided in the parameters")
@@ -996,9 +996,9 @@ if (params$condition != "None") {
 # options: celltype, condition or celltype_condition
 # This is based on the 2nd column name in params$annotation_celltype file
 if (params$celltype_condition != "None") {
-  binary_celltype_perc_heatmap(plot_height = 10, plot_width = 15, 
-                               annotation_type = params$celltype_condition, 
-                               cellInfo_f = params$annotation_celltype_condition, 
+  binary_celltype_perc_heatmap(plot_height = 10, plot_width = 15,
+                               annotation_type = params$celltype_condition,
+                               cellInfo_f = params$annotation_celltype_condition,
                                minPerc = 0.70)
 } else {
   print("No celltype + condition information provided in the parameters")
@@ -1019,8 +1019,8 @@ binary_auc_heatmap(annotation_col_f = params$binary_heatmap_cell_annotations,
 ```{r, fig.height = 6, fig.width = 8}
 # annotation_type is used to name saved plots and RDS objects, can be anything the user wants
 if (params$celltype != "None") {
-  RSS_annotation_plot(annotation_type = params$celltype, 
-                      rss_f = params$rss_celltype, 
+  RSS_annotation_plot(annotation_type = params$celltype,
+                      rss_f = params$rss_celltype,
                       units = "in", plot_height = 6, plot_width = 8)
 } else {
   print("No celltype information provided")
@@ -1032,8 +1032,8 @@ if (params$celltype != "None") {
 ```{r, fig.height = 3, fig.width = 4}
 # annotation_type is used to name saved plots and RDS objects, can be anything the user wants
 if (params$condition != "None") {
-  RSS_annotation_plot(annotation_type = params$condition, 
-                      rss_f = params$rss_condition, 
+  RSS_annotation_plot(annotation_type = params$condition,
+                      rss_f = params$rss_condition,
                       units = "in", plot_height = 4, plot_width = 5)
 } else {
   print("No condition specific information provided")
@@ -1045,8 +1045,8 @@ if (params$condition != "None") {
 ```{r, fig.height = 8, fig.width = 10}
 # annotation_type is used to name saved plots and RDS objects, can be anything the user wants
 if (params$celltype_condition != "None") {
-  RSS_annotation_plot(annotation_type = params$celltype_condition, 
-                      rss_f = params$rss_celltype_condition, 
+  RSS_annotation_plot(annotation_type = params$celltype_condition,
+                      rss_f = params$rss_celltype_condition,
                       units = "in", plot_height = 12, plot_width = 12)
 } else {
   print("No celltype + condition information provided")
@@ -1079,9 +1079,9 @@ if (params$celltype != "None") {
 ```{r}
 # annotation_type has to be "condition"
 if(params$condition != "None") {
-  num_active_regulons_annotation(cellInfo_f = params$annotation_condition, 
-                                 binary_mtx_f = params$binary_mtx, 
-                                 annotation_type = params$condition, 
+  num_active_regulons_annotation(cellInfo_f = params$annotation_condition,
+                                 binary_mtx_f = params$binary_mtx,
+                                 annotation_type = params$condition,
                                  units = "in", plot_height = 3, plot_width = 4)
 }
 ```
@@ -1089,9 +1089,9 @@ if(params$condition != "None") {
 ```{r, fig.height = 4, fig.width = 10}
 # annotation_type has to be "condition"
 if (params$condition != "None") {
-  num_annotation_per_regulon(cellInfo_f = params$annotation_condition, 
-                             binary_mtx_f = params$binary_mtx, 
-                             annotation_type = params$condition, 
+  num_annotation_per_regulon(cellInfo_f = params$annotation_condition,
+                             binary_mtx_f = params$binary_mtx,
+                             annotation_type = params$condition,
                              units = "in", plot_height = 4, plot_width = 11)
 }
 ```
@@ -1101,9 +1101,9 @@ if (params$condition != "None") {
 ```{r, fig.width = 5, fig.height = 2}
 # annotation_type has to be "celltype_condition"
 if (params$celltype_condition != "None") {
-  num_active_regulons_annotation(cellInfo_f = params$annotation_celltype_condition, 
-                                 binary_mtx_f = params$binary_mtx, 
-                                 annotation_type = params$celltype_condition, 
+  num_active_regulons_annotation(cellInfo_f = params$annotation_celltype_condition,
+                                 binary_mtx_f = params$binary_mtx,
+                                 annotation_type = params$celltype_condition,
                                  units = "in", plot_height = 3,plot_width = 6)
 }
 ```
@@ -1112,7 +1112,7 @@ if (params$celltype_condition != "None") {
 # annotation_type has to be "celltype_condition"
 if (params$celltype_condition != "None"){
   num_annotation_per_regulon(cellInfo_f = params$annotation_celltype_condition,
-                             binary_mtx_f = params$binary_mtx, 
+                             binary_mtx_f = params$binary_mtx,
                              annotation_type = params$celltype_condition,
                              units = "in", plot_height = 4, plot_width = 11)
 }
@@ -1124,8 +1124,8 @@ if (params$celltype_condition != "None"){
 
 ```{r}
 GO_res <- regulon_pathway_enrichment(regulons_f = params$regulon_genes,
-                                     ont_option = params$go_ont_option, 
-                                     pathway_db = "enrichGO", 
+                                     ont_option = params$go_ont_option,
+                                     pathway_db = "enrichGO",
                                      maxGSSize = params$maxGSSize)
 saveRDS(GO_res, paste0(results_directory, "/GO_res.rds"))
 ```
@@ -1137,9 +1137,9 @@ saveRDS(GO_res, paste0(results_directory, "/GO_res.rds"))
 if (params$celltype != "None") {
   wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,
                         annotation_type = "test_cell_type", test_type = "one_vs_all",
-                        plot_height = 10, plot_width = 11, units = "in", 
-                        showCategory = 7, stat_test = "wilcoxon", 
-                        pathwaydb = "GO_term", res_f = GO_res, 
+                        plot_height = 10, plot_width = 11, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon",
+                        pathwaydb = "GO_term", res_f = GO_res,
                         plot_row = 5, plot_col = 4)
 }
 ```
@@ -1149,10 +1149,10 @@ if (params$celltype != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top, 
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top,
                         annotation_type = "test_condition", test_type = "reference",
-                        plot_height = 6, plot_width = 8, units = "in", 
-                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "GO_term", 
+                        plot_height = 6, plot_width = 8, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "GO_term",
                         res_f = GO_res, plot_row = 0, plot_col = 2)
 }
 ```
@@ -1162,9 +1162,9 @@ if (params$condition != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$celltype != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$ks_celltype_top, 
-                        annotation_type = "test", test_type = "one_vs_all", 
-                        plot_height = 7, plot_width = 10, units = "in", 
+  wilcoxon_pathway_plot(wilcoxon_f = params$ks_celltype_top,
+                        annotation_type = "test", test_type = "one_vs_all",
+                        plot_height = 7, plot_width = 10, units = "in",
                         showCategory = 7, stat_test = "KS_celltype", pathwaydb = "GO_term",
                         res_f = GO_res, plot_col = 5, plot_row = 4)
 }
@@ -1175,9 +1175,9 @@ if (params$celltype != "None") {
 ```{r,fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$ks_condition_top, 
-                        annotation_type = "test", test_type = "reference", 
-                        plot_height = 7, plot_width = 10, units = "in", 
+  wilcoxon_pathway_plot(wilcoxon_f = params$ks_condition_top,
+                        annotation_type = "test", test_type = "reference",
+                        plot_height = 7, plot_width = 10, units = "in",
                         showCategory = 7, stat_test = "KS_condition", pathwaydb = "GO_term",
                         res_f = GO_res, plot_row = 0, plot_col = 4)
 }
@@ -1187,10 +1187,10 @@ if (params$condition != "None") {
 
 ```{r, fig.height = 8, fig.width = 10}
 if (params$celltype != "None") {
-  rss_pathway_plot(rss_f = params$rss_celltype, 
-                   annotation_type = params$celltype, 
-                   showCategory = 8, pathwaydb = "GO_term", res_f = GO_res, 
-                   plot_height = 8, plot_width = 10, units = "in", 
+  rss_pathway_plot(rss_f = params$rss_celltype,
+                   annotation_type = params$celltype,
+                   showCategory = 8, pathwaydb = "GO_term", res_f = GO_res,
+                   plot_height = 8, plot_width = 10, units = "in",
                    plot_row = 5, plot_col = 4)
 }
 ```
@@ -1199,10 +1199,10 @@ if (params$celltype != "None") {
 
 ```{r, fig.height = 6, fig.width = 8}
 if (params$condition != "None") {
-  rss_pathway_plot(rss_f = params$rss_condition, 
-                   annotation_type = params$condition, 
-                   showCategory = 8, pathwaydb = "GO_term", res_f = GO_res, 
-                   plot_height = 6, plot_width = 8, units = "in", 
+  rss_pathway_plot(rss_f = params$rss_condition,
+                   annotation_type = params$condition,
+                   showCategory = 8, pathwaydb = "GO_term", res_f = GO_res,
+                   plot_height = 6, plot_width = 8, units = "in",
                    plot_row = 2, plot_col = 4)
 }
 ```
@@ -1211,10 +1211,10 @@ if (params$condition != "None") {
 
 ```{r, fig.height = 8,fig.width = 10, eval = T}
 if (params$celltype_condition != "None") {
-  rss_pathway_plot(rss_f = params$rss_celltype_condition, 
-                   annotation_type = params$celltype_condition, 
-                   showCategory = 8, pathwaydb = "GO_term", res_f = GO_res, 
-                   plot_height = 8, plot_width = 10, units = "in", 
+  rss_pathway_plot(rss_f = params$rss_celltype_condition,
+                   annotation_type = params$celltype_condition,
+                   showCategory = 8, pathwaydb = "GO_term", res_f = GO_res,
+                   plot_height = 8, plot_width = 10, units = "in",
                    plot_row = 7, plot_col = 5)
 }
 ```
@@ -1222,8 +1222,8 @@ if (params$celltype_condition != "None") {
 ## Reactome pathways
 
 ```{r}
-Reactome_res <- reactome_pathway_enrichment(regulons_f = params$regulon_genes, 
-                                            pathway_db = "enrichPathway", 
+Reactome_res <- reactome_pathway_enrichment(regulons_f = params$regulon_genes,
+                                            pathway_db = "enrichPathway",
                                             maxGSSize = params$maxGSSize)
 saveRDS(Reactome_res, paste0(results_directory, "/Reactome_res.rds"))
 ```
@@ -1233,10 +1233,10 @@ saveRDS(Reactome_res, paste0(results_directory, "/Reactome_res.rds"))
 ```{r, fig.height = 8, fig.width = 8}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$celltype != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top, 
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,
                         annotation_type = "test_cell_type", test_type = "one_vs_all",
-                        plot_height = 10, plot_width = 11, units = "in", 
-                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "Reactome", 
+                        plot_height = 10, plot_width = 11, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "Reactome",
                         res_f = Reactome_res, plot_row = 5, plot_col = 4)
 }
 ```
@@ -1248,8 +1248,8 @@ if (params$celltype != "None") {
 if (params$condition != "None") {
   wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top,
                         annotation_type = "test_condition", test_type = "reference",
-                        plot_height = 6, plot_width = 8, units = "in", 
-                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "Reactome", 
+                        plot_height = 6, plot_width = 8, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "Reactome",
                         res_f = Reactome_res)
 }
 ```
@@ -1259,10 +1259,10 @@ if (params$condition != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$celltype != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$ks_celltype_top, 
+  wilcoxon_pathway_plot(wilcoxon_f = params$ks_celltype_top,
                         annotation_type = "test", test_type = "one_vs_all",
-                        plot_height = 7, plot_width = 10, units = "in", 
-                        showCategory = 7, stat_test = "KS_celltype", pathwaydb = "Reactome", 
+                        plot_height = 7, plot_width = 10, units = "in",
+                        showCategory = 7, stat_test = "KS_celltype", pathwaydb = "Reactome",
                         res_f = Reactome_res, plot_row = 5, plot_col = 4)
 }
 ```
@@ -1272,10 +1272,10 @@ if (params$celltype != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$ks_condition_top, 
-                        annotation_type = "test", test_type = "reference", 
-                        plot_height = 7, plot_width = 10, units = "in", 
-                        showCategory = 7, stat_test = "KS_condition", 
+  wilcoxon_pathway_plot(wilcoxon_f = params$ks_condition_top,
+                        annotation_type = "test", test_type = "reference",
+                        plot_height = 7, plot_width = 10, units = "in",
+                        showCategory = 7, stat_test = "KS_condition",
                         pathwaydb = "Reactome", res_f = Reactome_res)
 }
 ```
@@ -1284,9 +1284,9 @@ if (params$condition != "None") {
 
 ```{r, fig.height = 8, fig.width = 10}
 if (params$celltype != "None") {
- rss_pathway_plot(rss_f = params$rss_celltype, 
-                  annotation_type = params$celltype, 
-                  showCategory = 8, pathwaydb = "Reactome", res_f = Reactome_res, 
+ rss_pathway_plot(rss_f = params$rss_celltype,
+                  annotation_type = params$celltype,
+                  showCategory = 8, pathwaydb = "Reactome", res_f = Reactome_res,
                   plot_height = 8, plot_width = 10, units = "in",
                   plot_row = 5, plot_col = 4)
 }
@@ -1298,8 +1298,8 @@ if (params$celltype != "None") {
 if (params$condition != "None") {
   rss_pathway_plot(rss_f = params$rss_condition,
                    annotation_type = params$condition,
-                   showCategory = 8, pathwaydb = "Reactome", res_f = Reactome_res, 
-                   plot_height = 6, plot_width = 8, units = "in", 
+                   showCategory = 8, pathwaydb = "Reactome", res_f = Reactome_res,
+                   plot_height = 6, plot_width = 8, units = "in",
                    plot_row = 2, plot_col = 4)
 }
 ```
@@ -1310,8 +1310,8 @@ if (params$condition != "None") {
 if (params$celltype_condition != "None") {
   rss_pathway_plot(rss_f = params$rss_celltype_condition,
                    annotation_type = params$celltype_condition,
-                   showCategory = 8, pathwaydb = "Reactome", res_f = Reactome_res, 
-                   plot_height = 8, plot_width = 10, units = "in", 
+                   showCategory = 8, pathwaydb = "Reactome", res_f = Reactome_res,
+                   plot_height = 8, plot_width = 10, units = "in",
                    plot_row = 7, plot_col = 5)
 }
 ```
@@ -1319,9 +1319,9 @@ if (params$celltype_condition != "None") {
 ## MSigDB C2 curated pathways
 
 ```{r}
-msigdb_c2_res <- msigdb_pathway_enrichment(regulons_f = params$regulon_genes, 
-                                           pathway_db = "enricher", 
-                                           maxGSSize = params$maxGSSize, 
+msigdb_c2_res <- msigdb_pathway_enrichment(regulons_f = params$regulon_genes,
+                                           pathway_db = "enricher",
+                                           maxGSSize = params$maxGSSize,
                                            msigdb_geneset = params$msigdb_geneset)
 saveRDS(msigdb_c2_res, paste0(results_directory, "/msigdb_c2_res.rds"))
 ```
@@ -1331,9 +1331,9 @@ saveRDS(msigdb_c2_res, paste0(results_directory, "/msigdb_c2_res.rds"))
 ```{r, fig.height = 7, fig.width = 8}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$celltype != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top, 
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,
                         annotation_type = "test_cell_type", test_type = "one_vs_all",
-                        plot_height = 10, plot_width = 11, units = "in", 
+                        plot_height = 10, plot_width = 11, units = "in",
                         showCategory = 7, stat_test = "wilcoxon", pathwaydb = "msigdb_curated",
                         res_f = msigdb_c2_res, plot_row = 5, plot_col = 4)
 }
@@ -1344,11 +1344,11 @@ if (params$celltype != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top, 
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top,
                         annotation_type = "test_condition", test_type = "reference",
-                        plot_height = 6, plot_width = 8, units = "in", 
+                        plot_height = 6, plot_width = 8, units = "in",
                         showCategory = 7, stat_test = "wilcoxon",
-                        pathwaydb = "msigdb_curated", res_f = msigdb_c2_res, 
+                        pathwaydb = "msigdb_curated", res_f = msigdb_c2_res,
                         plot_row = 0, plot_col = 2)
 }
 ```
@@ -1358,11 +1358,11 @@ if (params$condition != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$celltype != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$ks_celltype_top, 
-                        annotation_type = "test", test_type = "one_vs_all", 
-                        plot_height = 7, plot_width = 10, units = "in", 
-                        showCategory = 7, stat_test = "KS_celltype", 
-                        pathwaydb = "msigdb_curated", res_f = msigdb_c2_res, 
+  wilcoxon_pathway_plot(wilcoxon_f = params$ks_celltype_top,
+                        annotation_type = "test", test_type = "one_vs_all",
+                        plot_height = 7, plot_width = 10, units = "in",
+                        showCategory = 7, stat_test = "KS_celltype",
+                        pathwaydb = "msigdb_curated", res_f = msigdb_c2_res,
                         plot_col = 5, plot_row = 4)
 }
 ```
@@ -1373,10 +1373,10 @@ if (params$celltype != "None") {
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
   wilcoxon_pathway_plot(wilcoxon_f = params$ks_condition_top,
-                        annotation_type = "test", test_type = "reference", 
-                        plot_height = 7, plot_width = 10, units = "in", 
-                        showCategory = 7, stat_test = "KS_condition", 
-                        pathwaydb = "msigdb_curated", res_f = msigdb_c2_res, 
+                        annotation_type = "test", test_type = "reference",
+                        plot_height = 7, plot_width = 10, units = "in",
+                        showCategory = 7, stat_test = "KS_condition",
+                        pathwaydb = "msigdb_curated", res_f = msigdb_c2_res,
                         plot_row = 0, plot_col = 4)
 }
 ```
@@ -1386,8 +1386,8 @@ if (params$condition != "None") {
 ```{r, fig.height = 8, fig.width = 10}
 if (params$celltype != "None") {
   rss_pathway_plot(rss_f = params$rss_celltype,
-                   annotation_type = params$celltype, showCategory = 8, 
-                   pathwaydb = "msigdb_curated", res_f = msigdb_c2_res, 
+                   annotation_type = params$celltype, showCategory = 8,
+                   pathwaydb = "msigdb_curated", res_f = msigdb_c2_res,
                    plot_height = 8, plot_width = 10, units = "in",
                    plot_row = 5, plot_col = 4)
 }
@@ -1398,9 +1398,9 @@ if (params$celltype != "None") {
 ```{r, fig.height = 6, fig.width = 8}
 if (params$condition != "None") {
   rss_pathway_plot(rss_f = params$rss_condition,
-                   annotation_type = params$condition, showCategory = 8, 
-                   pathwaydb = "msigdb_curated", res_f = msigdb_c2_res, 
-                   plot_height = 6, plot_width = 8, units = "in", 
+                   annotation_type = params$condition, showCategory = 8,
+                   pathwaydb = "msigdb_curated", res_f = msigdb_c2_res,
+                   plot_height = 6, plot_width = 8, units = "in",
                    plot_row = 2, plot_col = 4)
 }
 ```
@@ -1411,8 +1411,8 @@ if (params$condition != "None") {
 if (params$celltype_condition != "None") {
   rss_pathway_plot(rss_f = params$rss_celltype_condition,
                    annotation_type = params$celltype_condition, showCategory = 8,
-                   pathwaydb = "msigdb_curated", res_f = msigdb_c2_res, 
-                   plot_height = 8, plot_width = 10, units = "in", 
+                   pathwaydb = "msigdb_curated", res_f = msigdb_c2_res,
+                   plot_height = 8, plot_width = 10, units = "in",
                    plot_row = 7, plot_col = 4)
 }
 ```
@@ -1421,7 +1421,7 @@ if (params$celltype_condition != "None") {
 
 ```{r}
 KEGG_res <- kegg_pathway_enrichment(regulons_f = params$regulon_genes,
-                                    pathway_db = "enrichKEGG", 
+                                    pathway_db = "enrichKEGG",
                                     maxGSSize = params$maxGSSize)
 saveRDS(KEGG_res, paste0(results_directory, "/KEGG_res.rds"))
 ```
@@ -1431,10 +1431,10 @@ saveRDS(KEGG_res, paste0(results_directory, "/KEGG_res.rds"))
 ```{r, fig.height = 8, fig.width = 8}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$celltype != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top, 
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_celltype_top,
                         annotation_type = "test_cell_type", test_type = "one_vs_all",
-                        plot_height = 10, plot_width = 11, units = "in", 
-                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "KEGG", 
+                        plot_height = 10, plot_width = 11, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "KEGG",
                         res_f = KEGG_res, plot_row = 5, plot_col = 4)
 }
 ```
@@ -1445,9 +1445,9 @@ if (params$celltype != "None") {
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
   wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top,
-                        annotation_type = "test_condition", test_type = "reference", 
-                        plot_height = 6, plot_width = 8, units = "in", 
-                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "KEGG", 
+                        annotation_type = "test_condition", test_type = "reference",
+                        plot_height = 6, plot_width = 8, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "KEGG",
                         res_f = KEGG_res)
 }
 ```
@@ -1457,10 +1457,10 @@ if (params$condition != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$celltype != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$ks_celltype_top, 
-                        annotation_type = "test", test_type = "one_vs_all", 
-                        plot_height = 7, plot_width = 10, units = "in", 
-                        showCategory = 7, stat_test = "KS_celltype", pathwaydb = "KEGG", 
+  wilcoxon_pathway_plot(wilcoxon_f = params$ks_celltype_top,
+                        annotation_type = "test", test_type = "one_vs_all",
+                        plot_height = 7, plot_width = 10, units = "in",
+                        showCategory = 7, stat_test = "KS_celltype", pathwaydb = "KEGG",
                         res_f = KEGG_res, plot_row = 5, plot_col = 4)
 }
 ```
@@ -1470,9 +1470,9 @@ if (params$celltype != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$ks_condition_top, 
-                        annotation_type = "test", test_type = "reference", 
-                        plot_height = 7, plot_width = 10, units = "in", showCategory = 7, 
+  wilcoxon_pathway_plot(wilcoxon_f = params$ks_condition_top,
+                        annotation_type = "test", test_type = "reference",
+                        plot_height = 7, plot_width = 10, units = "in", showCategory = 7,
                         stat_test = "KS_condition", pathwaydb = "KEGG", res_f = KEGG_res)
 }
 ```
@@ -1481,10 +1481,10 @@ if (params$condition != "None") {
 
 ```{r, fig.height = 8, fig.width = 10}
 if (params$celltype!= "None") {
-  rss_pathway_plot(rss_f = params$rss_celltype, 
-                   annotation_type = params$celltype, showCategory = 8, 
-                   pathwaydb = "KEGG", res_f = KEGG_res, 
-                   plot_height = 8, plot_width = 10, units = "in", 
+  rss_pathway_plot(rss_f = params$rss_celltype,
+                   annotation_type = params$celltype, showCategory = 8,
+                   pathwaydb = "KEGG", res_f = KEGG_res,
+                   plot_height = 8, plot_width = 10, units = "in",
                    plot_row = 5, plot_col = 4)
 }
 ```
@@ -1493,10 +1493,10 @@ if (params$celltype!= "None") {
 
 ```{r, fig.height = 6, fig.width = 8}
 if (params$condition != "None") {
-  rss_pathway_plot(rss_f = params$rss_condition, 
-                   annotation_type = params$condition, showCategory = 8, 
-                   pathwaydb = "KEGG", res_f = KEGG_res, 
-                   plot_height = 6, plot_width = 8, units = "in", 
+  rss_pathway_plot(rss_f = params$rss_condition,
+                   annotation_type = params$condition, showCategory = 8,
+                   pathwaydb = "KEGG", res_f = KEGG_res,
+                   plot_height = 6, plot_width = 8, units = "in",
                    plot_row = 2, plot_col = 4)
 }
 ```
@@ -1506,9 +1506,9 @@ if (params$condition != "None") {
 ```{r, fig.height = 8, fig.width = 10, eval = T}
 if (params$celltype_condition != "None") {
   rss_pathway_plot(rss_f = params$rss_celltype_condition,
-                   annotation_type = params$celltype_condition, showCategory = 8, 
-                   pathwaydb = "KEGG", res_f = KEGG_res, 
-                   plot_height = 8, plot_width = 10, units = "in", 
+                   annotation_type = params$celltype_condition, showCategory = 8,
+                   pathwaydb = "KEGG", res_f = KEGG_res,
+                   plot_height = 8, plot_width = 10, units = "in",
                    plot_row = 7, plot_col = 4)
 }
 ```

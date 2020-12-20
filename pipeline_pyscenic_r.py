@@ -125,7 +125,7 @@ def rscenic(infile, outfile):
         rss_condition = dir + PARAMS["rscenic_annotation_condition"].split(".")[0] + "_RSS.csv"
         zscore_filter_threshold_condition = PARAMS["rscenic_zscore_filter_threshold_condition"]
         wilcoxon_condition_top = 'wilcoxon_condition_reference_top10.csv'
-        ks_condition_top = 'ks_condition_reference_top10.csv'
+        ks_condition_top = 'ks_condition_top10.csv'
     else:
         zscores_condition = "None"
         rss_condition = "None"
@@ -188,10 +188,10 @@ def rscenic(infile, outfile):
                                                  maxGSSize = '%(maxGSSize)s',
                                                  msigdb_geneset = '%(msigdb_geneset)s'),
                                                  output_file = '%(working_dir)s/%(outfile)s')"
-                   > scenic_analysis_R.log
-                   2> scenic_analysis_R.err"""
+                   > %(working_dir)s/%(results_directory)s/scenic_analysis_R.log
+                   2> %(working_dir)s/%(results_directory)s/scenic_analysis_R.err"""
 
-    P.run(statement, job_threads = PARAMS["rscenic_num_workers"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["rscenic_num_workers"], job_memory = '15G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @follows(scenic_seurat, rscenic)
 def full():

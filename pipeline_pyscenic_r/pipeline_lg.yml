@@ -34,8 +34,8 @@ rscenic:
     annotation_condition: tissue-annotation.csv    # ending of csv file with cellid & condition annotation for each cell or "None"
     annotation_celltype_condition: None    # ending of csv file with cellid & celltype_stim annotation for each cell or "None"
     zscores_celltype_condition: None    # Z scores based on auc for celltype_condition joint or "None"
-    zscore_filter_threshold_celltype: 2    # Z score filter threshold for celltype specific scores for heatmap or "None"
-    zscore_filter_threshold_condition: 2    # Z score filter threshold for condition specific scores for heatmap or "None"
+    zscore_filter_threshold_celltype: 1.5    # Z score filter threshold for celltype specific scores for heatmap or "None"
+    zscore_filter_threshold_condition: 1.5    # Z score filter threshold for condition specific scores for heatmap or "None"
     zscore_filter_threshold_celltype_condition: None    # Zscore filter threshold for celltype + condition specific  scores for heatmap or "None"
     rss_celltype_condition: None    # RSS scores per regulon for celltype_condition or "None"
     species: human    # fly, human, mouse or None
