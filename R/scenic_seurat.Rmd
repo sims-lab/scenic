@@ -238,7 +238,7 @@ plot_violin_aucell <- function(seurat_object,
                       slot = "scale.data", pt.size = 0.25) +
                   labs(y = "AUCell score") +
                   theme(axis.title.x = element_blank(),
-                        axis.text.x = element_text(angle = 0, hjust = 0.5),
+                        axis.text.x = element_text(angle = 45, hjust = 1),
                         axis.text = element_text(size = 14, colour = "black"),
                         axis.title.y = element_text(size = 16, colour = "black"),
                         plot.title = element_text(size = 18)) +
@@ -247,13 +247,13 @@ plot_violin_aucell <- function(seurat_object,
         pdf(paste0(plots_directory, "/", feature, "_", split_by, "_", name, ".pdf"))
         print(VlnPlot(seurat_object, features = feature, split.by = split_by,
                       assay = "scenic", slot = "scale.data", pt.size = 0.25) +
-            labs(y = "AUCell score") +
-            theme(axis.title.x = element_blank(),
-                  axis.text.x = element_text(angle = 0, hjust = 0.5),
-                  axis.text = element_text(size = 14, colour = "black"),
-                  axis.title.y = element_text(size = 16, colour = "black"),
-                  plot.title = element_text(size = 18)) +
-            NoLegend())
+                  labs(y = "AUCell score") +
+                  theme(axis.title.x = element_blank(),
+                        axis.text.x = element_text(angle = 45, hjust = 1),
+                        axis.text = element_text(size = 14, colour = "black"),
+                        axis.title.y = element_text(size = 16, colour = "black"),
+                        plot.title = element_text(size = 18)) +
+                  NoLegend())
     }
     dev.off()
 }
@@ -297,17 +297,17 @@ if (params$condition != "None") {
                          assay = "scenic",
                          slot = "scale.data") +
               plot_annotation(title = "Top 10 regulons condition",
-                              theme = theme(plot.title = element_text(size = 14,
-                                                                      hjust = 0.5))))
-
+                              theme = theme(plot.title = element_text(size = 14, hjust = 0.5),
+                                            axis.text.x = element_text(angle = 45, hjust = 1))))
+    
     Idents(seurat_object) <- params$celltype
     print(StackedVlnPlot(obj = seurat_object,
                          features = top10_regulons_condition$regulon,
                          assay = "scenic",
                          slot = "scale.data") +
               plot_annotation(title = "Top 10 regulons condition",
-                              theme = theme(plot.title = element_text(size = 14,
-                                                                      hjust = 0.5))))
+                              theme = theme(plot.title = element_text(size = 14, hjust = 0.5),
+                                            axis.text.x = element_text(angle = 45, hjust = 1))))
     dev.off()
 }
 
@@ -319,8 +319,8 @@ StackedVlnPlot(obj = seurat_object, features = top10_regulons_celltype$regulon,
                assay = "scenic",
                slot = "scale.data") +
     plot_annotation(title = "Top 10 regulons celltype",
-                    theme = theme(plot.title = element_text(size = 14,
-                                                            hjust = 0.5)))
+                    theme = theme(plot.title = element_text(size = 14, hjust = 0.5),
+                                  axis.text.x = element_text(angle = 45, hjust = 1)))
 
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
@@ -329,8 +329,8 @@ if (params$condition != "None") {
                    assay = "scenic",
                    slot = "scale.data") +
         plot_annotation(title = "Top 10 regulons celltype",
-                        theme = theme(plot.title = element_text(size = 14,
-                                                                hjust = 0.5)))
+                        theme = theme(plot.title = element_text(size = 14, hjust = 0.5),
+                                      axis.text.x = element_text(angle = 45, hjust = 1)))
 }
 dev.off()
 ```
@@ -374,12 +374,12 @@ if (params$condition != "None") {
                              features = group[["regulon"]],
                              assay = "scenic",
                              slot = "scale.data") +
-              plot_annotation(title = group_name,
-                              theme = theme(plot.title = element_text(size = 14,
-                                                                      hjust = 0.5))))
-    i <- i + 1
-}
-dev.off()
+                  plot_annotation(title = group_name,
+                                  theme = theme(plot.title = element_text(size = 14, hjust = 0.5), 
+                                                axis.text.x = element_text(angle = 45, hjust = 1))))
+        i <- i + 1
+    }
+    dev.off()
 }
 
 pdf(paste0(plots_directory, "/top10_regulons_per_",
@@ -394,8 +394,8 @@ for (group in top10_regulons_per_celltype) {
                          assay = "scenic",
                          slot = "scale.data") +
               plot_annotation(title = group_name,
-                              theme = theme(plot.title = element_text(size = 14,
-                                                                      hjust = 0.5))))
+                              theme = theme(plot.title = element_text(size = 14, hjust = 0.5),
+                                            axis.text.x = element_text(angle = 45, hjust = 1))))
     i <- i + 1
 }
 dev.off()
@@ -510,7 +510,7 @@ if (params$condition != "None") {
         column_to_rownames(var = "barcode")
 
     pdf(paste0(plots_directory, "/top10_regulons_per_",
-               params$condition, "_abs", "_heatmap.pdf"),
+               params$condition, "_abs_heatmap.pdf"),
         width = 8, height = 6)
     print(pheatmap(top10_regulons_per_condition_abs_aucell,
                    show_colnames = FALSE,
@@ -538,7 +538,7 @@ annotation_col <- metadata %>%
     column_to_rownames(var = "barcode")
 
 pdf(paste0(plots_directory, "/top10_regulons_per_",
-           params$celltype, "_abs", "_heatmap.pdf"),
+           params$celltype, "_abs_heatmap.pdf"),
     width = 8, height = 10)
 pheatmap(top10_regulons_per_celltype_abs_aucell,
          show_colnames = FALSE,

@@ -588,7 +588,7 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
                legend.text = element_text(size = 7))
        p1 <- p1 +
          facet_wrap_paginate(.~ .data[[annotation_type]], scales = "free", shrink = T,
-                    nrow = plot_row,ncol = plot_col, page = 1)
+                             nrow = plot_row,ncol = plot_col, page = 1)
        num_pages <- n_pages(p1)
 
        pdf(paste0(plots_directory, "/", pathwaydb, "_plot_", stat_test,
@@ -596,10 +596,8 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
            height = plot_height, width = plot_width)
        for (i in 1:num_pages) {
          print(p1 +
-               facet_wrap_paginate(.~ .data[[annotation_type]],
-                                   scales = "free", shrink = T,
-                                   nrow = plot_row, ncol = plot_col,
-                                   page = i) +
+               facet_wrap_paginate(.~ .data[[annotation_type]], scales = "free", shrink = T,
+                                   nrow = plot_row, ncol = plot_col, page = i) +
            theme(strip.background = element_blank(),
                  strip.text = element_text(face = "bold", size = 7)) +
            enrichplot_theme)
@@ -857,7 +855,7 @@ rss_pathway_plot <- function(rss_f = params$rss_celltype,
       dplyr::select(annotation, Regulon)
 
     cc_subset <- comparecluster_df %>%
-      inner_join(rss_scores_long, by = c("Cluster" = "regulon"))
+      inner_join(rss_scores_long, by = c("Cluster" = "Regulon"))
 
     if (nrow(cc_subset) > 0) {
       gsize <- as.numeric(sub("/\\d+$", "", as.character(cc_subset$GeneRatio)))
@@ -896,10 +894,8 @@ rss_pathway_plot <- function(rss_f = params$rss_celltype,
            height = plot_height, width = plot_width)
        for (i in 1:num_pages) {
          print(p1 +
-               facet_wrap_paginate(.~ .data[[annotation_type]],
-                                   scales = "free", shrink = T,
-                                   nrow = plot_row, ncol = plot_col,
-                                   page = i) +
+               facet_wrap_paginate(.~ annotation, scales = "free", shrink = T,
+                                   nrow = plot_row, ncol = plot_col, page = i) +
            theme(strip.background = element_blank(),
                  strip.text = element_text(face = "bold", size = 7)) +
            enrichplot_theme)
