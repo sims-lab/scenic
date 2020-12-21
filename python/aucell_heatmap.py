@@ -17,9 +17,11 @@ import logging
 os.environ['NUMEXPR_MAX_THREADS'] = '15'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--exp_mtx', default = 'data.dir/merged-all-1000_filtered-raw-expression.csv',    # raw data matrix - genes x cells
+parser.add_argument('--sample', default = 'merged-all',
+                    help = 'sample name')
+parser.add_argument('--exp_mtx', default = 'pyscenic_results.dir/normalised.dir/merged-all_filtered-expression.csv',    # genes x cells
                     help = 'path to csv file containing filtered expression values used for pySCENIC')
-parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/raw.dir/merged-all-1000_aucell.csv',
+parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/normalised.dir/merged-all_aucell.csv',
                     help = 'output from pyscenic aucell, matrix of AUCell scores')
 parser.add_argument('-t', action = 'store_true',
                     help = "whether to transpose the AUCell matrix - yes if started with csv file")
@@ -27,6 +29,8 @@ args = parser.parse_args()
 
 logging.basicConfig(filename = 'aucell_heatmap.log', level = logging.DEBUG)
 logging.info(args)
+
+sample = args.sample
 
 if "raw" in args.exp_mtx:
     datatype = "raw"
@@ -53,7 +57,7 @@ for i,x in enumerate(percentiles):
 ax.set_xlabel('# of genes')
 ax.set_ylabel('# of cells')
 fig.tight_layout()
-plt.savefig("plots.dir/" + datatype + ".dir/number_of_genes_expressed_above_AUC_thresholds.png")
+plt.savefig("plots.dir/" + datatype + ".dir/" + sample + ".dir/number_of_genes_expressed_above_AUC_thresholds.png")
 plt.close()
 
 # Heatmap of AUCell scores
@@ -64,6 +68,6 @@ else:
 
 logging.info("Read in AUCell matrix")
 sns_plot = sns.clustermap(auc_mtx, figsize = (12, 12))
-sns_plot.savefig("plots.dir/" + datatype + ".dir/aucell_heatmap.png")
+sns_plot.savefig("plots.dir/" + datatype + ".dir/" + sample + ".dir/aucell_heatmap.png")
 
 logging.info("Plotted heatmap of AUCell scores")

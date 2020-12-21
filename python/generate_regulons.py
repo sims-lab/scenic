@@ -14,12 +14,15 @@ from pyscenic.transform import df2regulons
 import logging
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--ctx_output', default = 'pyscenic_results.dir/raw.dir/merged-all-1000_reg.csv',
+parser.add_argument('--sample', default = 'merged-all',
+                    help = 'sample name')
+parser.add_argument('--ctx_output', default = 'pyscenic_results.dir/normalised.dir/merged-all_reg.csv',
                     help = 'Output from pyscenic ctx, dataframe of enriched features')
 args = parser.parse_args()
 
 logging.info(args)
-print(args)
+
+sample = args.sample
 
 if "raw" in args.ctx_output:
     datatype = "raw"
@@ -33,7 +36,7 @@ df_motifs = load_motifs(args.ctx_output)
 regulons = df2regulons(df_motifs)
 
 # Pickle these regulons
-with open("pyscenic_results.dir/" + datatype + ".dir/regulons.P", 'wb') as f:
+with open("pyscenic_results.dir/" + datatype + ".dir/" + sample + ".dir/regulons.P", 'wb') as f:
     pickle.dump(regulons, f)
 
 # Output regulons as a csv file
@@ -54,7 +57,7 @@ regulon_df.weights = regulon_df.weights.apply(lambda x: str(x))
 regulon_df.weights = regulon_df.weights.apply(lambda x: x.replace('[', ''))
 regulon_df.context = regulon_df.context.apply(lambda x: ", ".join(x))
 
-regulon_df.to_csv("pyscenic_results.dir/" + datatype + ".dir/regulons.csv", index = False)
+regulon_df.to_csv("pyscenic_results.dir/" + datatype + ".dir/" + sample + ".dir/regulons.csv", index = False)
 
 # # Get motif logo for each regulon
 # if not os.path.exists('plots.dir/motifs.dir'):

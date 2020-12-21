@@ -1,17 +1,18 @@
 # Script to filter csv file for use in pySCENIC
 
 import argparse
+import os
 import pandas as pd
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input',
-                    default = 'data.dir/*_raw-expression.csv',
+                    default = 'data.dir/*_normalised-expression.csv',
                     help = 'path to h5ad-formatted hdf5 file containing AnnData object')
 parser.add_argument('--umi_counts', default = 3,
                     help = 'UMI counts to use for gene filtering, genes must have at least umi_counts * min_percent * numberofcells counts to be retained')
 parser.add_argument('--min_percent', default = 0.01,
                     help = 'percentage of cells for gene filtering, genes must have at least min_percent * numberofcells counts to be retained')
-parser.add_argument('--output', default = 'filtered-raw-expression.csv',
+parser.add_argument('--output', default = 'filtered-normalised-expression.csv',
                     help = 'path to output file')
 args = parser.parse_args()
 
