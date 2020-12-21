@@ -82,8 +82,8 @@ def scenic_seurat(infile, outfile):
                                                  reference_condition = '%(reference_condition)s',
                                                  FDR_threshold = '%(FDR_threshold)s'),
                                                  output_file = '%(working_dir)s/%(outfile)s')"
-                   > scenic_seurat.log
-                   2> scenic_seurat.err"""
+                   > %(working_dir)s/%(results_directory)s/scenic_seurat.log
+                   2> %(working_dir)s/%(results_directory)s/scenic_seurat.err"""
 
     P.run(statement, job_threads = PARAMS["rseurat_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 

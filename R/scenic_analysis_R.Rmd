@@ -113,6 +113,7 @@ library(foreach)
 library(msigdbr)
 library(org.Mm.eg.db)
 library(org.Hs.eg.db)
+library(ggforce)
 try({library(org.Dm.eg.db)}, silent = TRUE)
 
 registerDoMC(cores = params$num_workers)
@@ -547,7 +548,7 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
                                   plot_height = 8, plot_width = 8, units = "in",
                                   showCategory = 8, stat_test = "wilcoxon",
                                   pathwaydb = "GO_term", res_f = GO_res,
-                                  plot_row = 2, plot_col = 2){
+                                  plot_row = 1, plot_col = 1) {
   comparecluster_df <- res_f@compareClusterResult
 
   if (annotation_type != "None") {
@@ -555,9 +556,10 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
      wilcoxon_top10 <- wilcoxon_top10 %>%
        dplyr::select(regulon, !!sym(annotation_type))
 
-     if (nrow(comparecluster_df) > 0 & nrow(wilcoxon_top10) > 0) {
-       cc_subset <- merge(comparecluster_df, wilcoxon_top10,
-                          by.x = "Cluster", by.y = "regulon")
+     cc_subset <- comparecluster_df %>%
+       inner_join(wilcoxon_top10, by = c("Cluster" = "regulon"))
+
+     if (nrow(cc_subset) > 0) {
        gsize <- as.numeric(sub("/\\d+$", "", as.character(cc_subset$GeneRatio)))
        gcsize <- as.numeric(sub("^\\d+/", "", as.character(cc_subset$GeneRatio)))
        cc_subset$GeneRatio <- gsize/gcsize
@@ -574,7 +576,7 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
                                        levels = rev(unique(plot_data$Description[idx])))
 
        p1 <- ggplot(plot_data,
-                    aes_string(x = "Cluster",y = "Description", color = "p.adjust"))
+                    aes_string(x = "Cluster", y = "Description", color = "p.adjust"))
        p1 <- p1 +
          geom_point(aes(size = Count)) +
          theme(axis.text.y = element_text(size = 7),
@@ -585,28 +587,35 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
          theme(legend.title = element_text(size = 7),
                legend.text = element_text(size = 7))
        p1 <- p1 +
-         facet_wrap(.~ .data[[annotation_type]], scales = "free", shrink = T,
-                    nrow = plot_row,ncol = plot_col) +
-         theme(strip.background = element_blank(),
-               strip.text = element_text(face = "bold", size = 7))
-       p1 <- p1 +
-         enrichplot_theme
+         facet_wrap_paginate(.~ .data[[annotation_type]], scales = "free", shrink = T,
+                    nrow = plot_row,ncol = plot_col, page = 1)
+       num_pages <- n_pages(p1)
 
-       ggsave(
-         plot = p1,
-         filename = paste0(pathwaydb, "_plot_", stat_test, "_top10",
-                           annotation_type, "_", test_type, ".pdf"),
-         path = paste0(plots_directory, "/"), dpi = 300,
-         units = units, height = plot_height, width = plot_width)
+       pdf(paste0(plots_directory, "/", pathwaydb, "_plot_", stat_test,
+                  "_top10", annotation_type, "_", test_type, ".pdf"),
+           height = plot_height, width = plot_width)
+       for (i in 1:num_pages) {
+         print(p1 +
+               facet_wrap_paginate(.~ .data[[annotation_type]],
+                                   scales = "free", shrink = T,
+                                   nrow = plot_row, ncol = plot_col,
+                                   page = i) +
+           theme(strip.background = element_blank(),
+                 strip.text = element_text(face = "bold", size = 7)) +
+           enrichplot_theme)
+       }
+       dev.off()
 
        saveRDS(
          p1,
          file = paste0(plots_directory, "/", pathwaydb, "_plot_", stat_test,
                        "_top10_", annotation_type, "_", test_type, ".rds"))
        print(p1)
+
      } else {
-       print("comparecluster_df or wilcoxon_top10 variable is empty")
+       print("No overlap between comparecluster_df and top10 Wilcoxon/KS")
      }
+
   } else {
     print("Wilcoxon/KS files cell or condition column name in results file not inputted in function")
   }
@@ -832,7 +841,7 @@ rss_pathway_plot <- function(rss_f = params$rss_celltype,
                              annotation_type = params$celltype,
                              plot_height = 8, plot_width = 8, units = "in",
                              showCategory = 8, pathwaydb = "GO_term", res_f = GO_res,
-                             plot_row = 2, plot_col = 2) {
+                             plot_row = 1, plot_col = 1) {
   if (annotation_type != "None") {
     comparecluster_df <- res_f@compareClusterResult
     rss_scores <- read_csv(file = rss_f)
@@ -847,51 +856,65 @@ rss_pathway_plot <- function(rss_f = params$rss_celltype,
       dplyr::slice(1:10) %>%
       dplyr::select(annotation, Regulon)
 
-   cc_subset <- merge(comparecluster_df, rss_scores_long, by.x = "Cluster", by.y = "Regulon")
-   gsize <- as.numeric(sub("/\\d+$", "", as.character(cc_subset$GeneRatio)))
-   gcsize <- as.numeric(sub("^\\d+/", "", as.character(cc_subset$GeneRatio)))
-   cc_subset$GeneRatio <- gsize/gcsize
-   cluster <- paste(as.character(cc_subset$Cluster), "(", gcsize, ")", sep = "")
-   lv <- unique(cluster)[order(as.numeric(unique(cc_subset$Cluster)))]
-   cc_subset$Cluster <- factor(cluster, levels = lv)
+    cc_subset <- comparecluster_df %>%
+      inner_join(rss_scores_long, by = c("Cluster" = "regulon"))
 
-   plot_data <- cc_subset %>%
-     group_by(Cluster) %>%
-     dplyr::arrange(p.adjust) %>%
-     dplyr::slice(1:7)
-   idx <-  order(plot_data$Cluster)
-   plot_data$Description <- factor(plot_data$Description,
-                                   levels = rev(unique(plot_data$Description[idx])))
+    if (nrow(cc_subset) > 0) {
+      gsize <- as.numeric(sub("/\\d+$", "", as.character(cc_subset$GeneRatio)))
+      gcsize <- as.numeric(sub("^\\d+/", "", as.character(cc_subset$GeneRatio)))
+      cc_subset$GeneRatio <- gsize/gcsize
+      cluster <- paste(as.character(cc_subset$Cluster), "(", gcsize, ")", sep = "")
+      lv <- unique(cluster)[order(as.numeric(unique(cc_subset$Cluster)))]
+      cc_subset$Cluster <- factor(cluster, levels = lv)
 
-   p1 <- ggplot(plot_data,
-                aes_string(x = "Cluster", y = "Description", color = "p.adjust"))
-   p1 <- p1 +
-     geom_point(aes(size=Count)) +
-     theme(axis.text.y = element_text(size = 7),
-           axis.text.x = element_text(size = 7, angle = 45, hjust = 1)) +
-     scale_color_viridis_c(direction = 1, alpha = 0.8) +
-     xlab("") +
-     ylab("") +
-     theme(legend.title = element_text(size = 7),
-           legend.text = element_text(size = 7))
-   p1 <- p1 +
-     facet_wrap(.~ annotation, scales = "free", shrink = T, nrow = plot_row, ncol = plot_col) +
-     theme(strip.background = element_blank(),
-           strip.text = element_text(face = "bold", size = 7))
-   p1 <- p1 +
-     enrichplot_theme
+      plot_data <- cc_subset %>%
+        group_by(Cluster) %>%
+        dplyr::arrange(p.adjust) %>%
+        dplyr::slice(1:7)
+      idx <-  order(plot_data$Cluster)
+      plot_data$Description <- factor(plot_data$Description,
+                                      levels = rev(unique(plot_data$Description[idx])))
 
-   ggsave(
-     plot = p1,
-     filename = paste0(pathwaydb, "_plot_RSS_scores_top10", annotation_type, ".pdf"),
-     path = paste0(plots_directory, "/"), dpi = 300,
-     units = units, height = plot_height, width = plot_width)
+      p1 <- ggplot(plot_data,
+                   aes_string(x = "Cluster", y = "Description", color = "p.adjust"))
+      p1 <- p1 +
+        geom_point(aes(size = Count)) +
+        theme(axis.text.y = element_text(size = 7),
+              axis.text.x = element_text(size = 7, angle = 45, hjust = 1)) +
+        scale_color_viridis_c(direction = 1, alpha = 0.8) +
+        xlab("") +
+        ylab("") +
+        theme(legend.title = element_text(size = 7),
+              legend.text = element_text(size = 7))
+      p1 <- p1 +
+        facet_wrap_paginate(.~ annotation, scales = "free", shrink = T,
+                            nrow = plot_row, ncol = plot_col, page = 1)
+      num_pages <- n_pages(p1)
 
-    saveRDS(
-      p1,
-      file = paste0(plots_directory, "/", pathwaydb, "_plot_RSS_scores_top10_",
-                    annotation_type, ".rds"))
-    print(p1)
+       pdf(paste0(plots_directory, "/", pathwaydb, "_plot_RSS_scores_top10_",
+                  annotation_type, ".pdf"),
+           height = plot_height, width = plot_width)
+       for (i in 1:num_pages) {
+         print(p1 +
+               facet_wrap_paginate(.~ .data[[annotation_type]],
+                                   scales = "free", shrink = T,
+                                   nrow = plot_row, ncol = plot_col,
+                                   page = i) +
+           theme(strip.background = element_blank(),
+                 strip.text = element_text(face = "bold", size = 7)) +
+           enrichplot_theme)
+       }
+       dev.off()
+
+      saveRDS(
+        p1,
+        file = paste0(plots_directory, "/", pathwaydb, "_plot_RSS_scores_top10_",
+                      annotation_type, ".rds"))
+      print(p1)
+
+    } else {
+      print("No overlap between comparecluster_df and RSS top 10")
+    }
 
   } else {
     print("Annotation type not inputted")
