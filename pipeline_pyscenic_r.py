@@ -63,6 +63,8 @@ def scenic_seurat(infile, outfile):
     if condition_exclusion != "None" and sample in condition_exclusion:
         condition = "None"
 
+    os.makedirs(results_directory)
+
     statement = """Rscript -e "rmarkdown::render('%(R_PATH)s/scenic_seurat.Rmd',
                                                  params = list(working_dir = '%(working_dir)s',
                                                  seurat_object = '%(working_dir)s/%(seurat_object)s',
