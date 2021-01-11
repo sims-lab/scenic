@@ -299,7 +299,7 @@ if (params$condition != "None") {
               plot_annotation(title = "Top 10 regulons condition",
                               theme = theme(plot.title = element_text(size = 14, hjust = 0.5),
                                             axis.text.x = element_text(angle = 45, hjust = 1))))
-    
+
     Idents(seurat_object) <- params$celltype
     print(StackedVlnPlot(obj = seurat_object,
                          features = top10_regulons_condition$regulon,
@@ -375,7 +375,7 @@ if (params$condition != "None") {
                              assay = "scenic",
                              slot = "scale.data") +
                   plot_annotation(title = group_name,
-                                  theme = theme(plot.title = element_text(size = 14, hjust = 0.5), 
+                                  theme = theme(plot.title = element_text(size = 14, hjust = 0.5),
                                                 axis.text.x = element_text(angle = 45, hjust = 1))))
         i <- i + 1
     }
@@ -724,8 +724,6 @@ if (params$condition != "None") {
               paste0(results_directory, "/wilcoxon_condition_reference_comparison.csv"))
 }
 
-print(wilcoxon_markers_condition_reference)
-
 # Condition - all pairwise
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
@@ -806,8 +804,6 @@ if (params$condition != "None") {
         arrange(desc(avg_diff)) %>%
         slice_head(n = 10) %>%
         ungroup()
-    
-    print(top10_wilcoxon_condition_reference)
 
     write_csv(top10_wilcoxon_condition_reference,
               paste0(results_directory, "/wilcoxon_condition_reference_top10.csv"))
@@ -843,20 +839,20 @@ top10_heatmap <- function(top10_regulons_table,
     if (nrow(top10_regulons_table) > 0) {
         aucell_zscore <- rownames_to_column(as.data.frame(aucell_zscore),
                                             var = "regulon")
-        
+
         top10_regulons_table_filtered <- aucell_zscore %>%
             dplyr::filter(regulon %in% top10_regulons_table$regulon) %>%
             distinct(regulon, .keep_all = TRUE) %>%
             column_to_rownames(var = "regulon")
-        
+
         # Set anything above 3 to 3, and anything below -3 to -3
         top10_regulons_table_filtered[top10_regulons_table_filtered > 3] <- 3
         top10_regulons_table_filtered[top10_regulons_table_filtered < -3] <- -3
-        
+
         annotation_col <- metadata %>%
             dplyr::select(barcode, contains(group)) %>%
             column_to_rownames(var = "barcode")
-        
+
         cluster_rows <- ifelse(nrow(top10_regulons_table_filtered) > 2, TRUE, FALSE)
         pheatmap(top10_regulons_table_filtered,
                  show_colnames = FALSE,
@@ -865,12 +861,12 @@ top10_heatmap <- function(top10_regulons_table,
                  filename = paste0(plots_directory, "/top10_regulons_wilcoxon_",
                                    group, filename, "_heatmap.pdf"),
                  width = 8, height = 10)
-        
+
         print(pheatmap(top10_regulons_table_filtered,
                        show_colnames = FALSE,
                        cluster_rows = cluster_rows,
                        annotation_col = annotation_col))
-        
+
     } else {
         "top10_regulons_table is empty"
     }
@@ -883,7 +879,7 @@ if (params$condition != "None") {
                   aucell_zscore,
                   params$condition,
                   "_reference")
-    
+
     top10_heatmap(top10_wilcoxon_condition_pairwise,
                   aucell_zscore,
                   params$condition,
@@ -902,9 +898,9 @@ if (nrow(top10_wilcoxon_celltype) > 0) {
         features = unique(top10_wilcoxon_celltype$regulon),
         assays = "scenic",
         slot = "scale.data")
-    
+
     top10_wilcoxon_celltype_average <- top10_wilcoxon_celltype_average[["scenic"]]
-    
+
     cluster_rows <- ifelse(nrow(top10_wilcoxon_celltype_average) > 2, TRUE, FALSE)
     pheatmap(top10_wilcoxon_celltype_average,
              scale = "row",
@@ -918,16 +914,16 @@ if (nrow(top10_wilcoxon_celltype) > 0) {
 
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
-    
+
     if (nrow(top10_wilcoxon_condition_reference) > 0) {
         top10_wilcoxon_condition_reference_average <- AverageExpression(
             seurat_object,
             features = unique(top10_wilcoxon_condition_reference$regulon),
             assays = "scenic",
             slot = "scale.data")
-        
+
         top10_wilcoxon_condition_reference_average <- top10_wilcoxon_condition_reference_average[["scenic"]]
-        
+
         cluster_rows <- ifelse(nrow(top10_wilcoxon_condition_reference_average) > 2, TRUE, FALSE)
         pheatmap(top10_wilcoxon_condition_reference_average,
                  scale = "row",
@@ -935,20 +931,20 @@ if (params$condition != "None") {
                  filename = paste0(plots_directory,
                                    "/top10_regulons_wilcoxon_condition_reference_average_heatmap.pdf"),
                  width = 5, height = 6)
-        
+
     } else {
         "top10_wilcoxon_condition_reference is empty"
     }
-    
+
     if (nrow(top10_wilcoxon_condition_pairwise) > 0) {
         top10_wilcoxon_condition_pairwise_average <- AverageExpression(
             seurat_object,
             features = unique(top10_wilcoxon_condition_pairwise$regulon),
             assays = "scenic",
             slot = "scale.data")
-        
+
         top10_wilcoxon_condition_pairwise_average <- top10_wilcoxon_condition_pairwise_average[["scenic"]]
-        
+
         cluster_rows <- ifelse(nrow(top10_wilcoxon_condition_pairwise_average) > 2, TRUE, FALSE)
         pheatmap(top10_wilcoxon_condition_pairwise_average,
                  scale = "row",
@@ -971,9 +967,9 @@ if (nrow(top10_ks_celltype) > 0) {
         features = unique(top10_ks_celltype$regulon),
         assays = "scenic",
         slot = "scale.data")
-    
+
     top10_ks_celltype_average <- top10_ks_celltype_average[["scenic"]]
-    
+
     cluster_rows <- ifelse(nrow(top10_ks_celltype_average) > 2, TRUE, FALSE)
     pheatmap(top10_ks_celltype_average,
              scale = "row",
@@ -994,7 +990,7 @@ if (params$condition != "None" & nrow(top10_ks_condition) > 0) {
         slot = "scale.data")
 
     top10_ks_condition_average <- top10_ks_condition_average[["scenic"]]
-    
+
     cluster_rows <- ifelse(nrow(top10_ks_condition_average) > 2, TRUE, FALSE)
     pheatmap(top10_ks_condition_average,
              scale = "row",
