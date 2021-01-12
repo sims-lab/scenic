@@ -43,6 +43,7 @@ library(patchwork)
 library(RColorBrewer)
 library(gtools)
 library(pheatmap)
+options(scipen = 999)
 ```
 
 ```{r Read_in_data}
@@ -778,7 +779,7 @@ write_csv(ks_results_celltype[, c(1:4, 7, 5, 6)],
 # Using Wilcoxon output from the FindMarkers function so there is some pre-filtering
 top10_wilcoxon_celltype <- wilcoxon_markers_celltype %>%
     group_by(test_cell_type) %>%
-    filter(p_val_adj < params$FDR_threshold) %>%
+    filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
     arrange(desc(avg_diff)) %>%
     slice_head(n = 10) %>%
     ungroup()
@@ -789,7 +790,7 @@ write_csv(top10_wilcoxon_celltype,
 # The KS test has no pre-filtering
 top10_ks_celltype <- ks_results_celltype %>%
     group_by(test) %>%
-    filter(FDR < params$FDR_threshold) %>%
+    filter(as.numeric(FDR) < params$FDR_threshold) %>%
     arrange(desc(log2FC)) %>%
     slice_head(n = 10) %>%
     ungroup()
@@ -800,7 +801,7 @@ write_csv(top10_ks_celltype,
 if (params$condition != "None") {
     top10_wilcoxon_condition_reference <- wilcoxon_markers_condition_reference %>%
         group_by(test_condition) %>%
-        filter(p_val_adj < params$FDR_threshold) %>%
+        filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
         arrange(desc(avg_diff)) %>%
         slice_head(n = 10) %>%
         ungroup()
@@ -810,7 +811,7 @@ if (params$condition != "None") {
 
     top10_wilcoxon_condition_pairwise <- wilcoxon_markers_condition_pairwise %>%
         group_by(test_condition, reference_condition) %>%
-        filter(p_val_adj < params$FDR_threshold) %>%
+        filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
         arrange(desc(avg_diff)) %>%
         slice_head(n = 10) %>%
         ungroup()
@@ -820,7 +821,7 @@ if (params$condition != "None") {
 
      top10_ks_condition <- ks_results_condition %>%
         group_by(test) %>%
-        filter(FDR < params$FDR_threshold) %>%
+        filter(as.numeric(FDR) < params$FDR_threshold) %>%
         arrange(desc(log2FC)) %>%
         slice_head(n = 10) %>%
         ungroup()
