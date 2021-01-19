@@ -220,7 +220,7 @@ binary_celltype_perc_heatmap <- function(cellInfo_f = params$annotation_celltype
     regulon_activity_binarised_celltype <- binary_mtx.merge %>%
       dplyr::group_by_if(is.factor) %>%
       dplyr::select(-c(X1)) %>%
-      summarise_all(.funs = mean) %>%
+      summarise_all(.funs = mean) %>% remove_rownames %>%
       tibble::column_to_rownames(var = {{annotation_type}})
     regulon_activity_binarised_celltype <- t(regulon_activity_binarised_celltype)
 
