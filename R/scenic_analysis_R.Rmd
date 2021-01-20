@@ -12,34 +12,35 @@ output:
       smooth_scroll: yes
       toc_depth: 6
 params:
-  working_dir: "/Users/lgarner/Documents/Klenerman_group/2020/Analysis/10x_blood_and_liver_MAIT/pyscenic_test"
+  working_dir: "/Users/lgarner/Documents/Klenerman_group/2020/Analysis/10x_stimulated_MAIT"
   num_workers: 6    # number of cores
   datatype: "normalised"    # raw or normalised
-  results_directory: "../pyscenic_results.dir/normalised.dir/all-samples.dir/pyscenic_r.dir"
-  plots_directory: "../plots.dir/normalised.dir/all-samples.dir/pyscenic_r.dir"
-  celltype: "SCT_snn_res.0.5"    # column name for celltype annotations in files
-  condition: "tissue"    # column name for condition annotation in files or "None"
+  results_directory: "../../results/pyscenic/normalised.dir/merged-all.dir/pyscenic_r.dir"
+  plots_directory: "../../plots/pyscenic/normalised.dir/merged-all.dir/pyscenic_r.dir"
+  celltype: "SCT_snn_res.0.3"    # column name for celltype annotations in files
+  condition: "stimulation"    # column name for condition annotation in files or "None"
   celltype_condition: "None"    # column name for celltype_condition columns in files or "None"
-  zscores_celltype: "../pyscenic_results.dir/normalised.dir/all-samples.dir/aucell_zscores_cluster-annotation.csv"    # Z scores based on AUCell scores for celltypes
-  zscores_condition: "../pyscenic_results.dir/normalised.dir/all-samples.dir/aucell_zscores_tissue-annotation.csv"    # Z scores based on AUCell scores for condition or "None"
+  zscores_celltype: "../../results/pyscenic/normalised.dir/merged-all.dir/aucell_zscores_cluster-annotation.csv"    # Z scores based on AUCell scores for celltypes
+  zscores_condition: "../../results/pyscenic/normalised.dir/merged-all.dir/aucell_zscores_stimulation-annotation.csv"    # Z scores based on AUCell scores for condition or "None"
   zscores_celltype_condition: "None"    # Z scores based on AUCell scores for celltype_condition joint or "None"
   zscore_filter_threshold_celltype: 1.5    # Z score filter threshold for celltype specific scores for heatmap
   zscore_filter_threshold_condition: 1.5    # Z score filter threshold for condition specific scores for heatmap or "None"
   zscore_filter_threshold_celltype_condition: "None"    # Z score filter threshold for celltype + condition specific scores for heatmap or "None"
-  binary_mtx: "../pyscenic_results.dir/normalised.dir/all-samples.dir/binary_matrix.csv" # binary AUCell scores for each cell
-  annotation_celltype: "../data.dir/all-samples_cluster-annotation.csv"    # csv file with cellid & celltype annotations for each cell
-  annotation_condition: "../data.dir/all-samples_tissue-annotation.csv"    # csv file with cellid & condition annotation for each cell or "None"
+  binary_mtx: "../../results/pyscenic/normalised.dir/merged-all.dir/binary_matrix.csv" # binary AUCell scores for each cell
+  annotation_celltype: "../../results/merged_all_cluster_annotation.csv"    # csv file with cellid & celltype annotations for each cell
+  annotation_condition: "../../results/merged_all_stimulation_annotation.csv"    # csv file with cellid & condition annotation for each cell or "None"
   annotation_celltype_condition: "None"    # csv file with cellid & celltype_condition annotation for each cell or "None"
-  binary_heatmap_cell_annotations : "../data.dir/all-samples_cluster-annotation.csv" # csv file with cellid and annotation data per cell for binary all cells heatmap or "None"
-  rss_celltype: "../pyscenic_results.dir/normalised.dir/all-samples.dir/cluster-annotation_RSS.csv"    # RSS scores per regulon for celltype
-  rss_condition: "../pyscenic_results.dir/normalised.dir/all-samples.dir/tissue-annotation_RSS.csv"    # RSS scores per regulon for condition or "None"
+  binary_heatmap_cell_annotations : "../../results/merged_all_cluster_annotation.csv" # csv file with cellid and annotation data per cell for binary all cells heatmap or "None"
+  rss_celltype: "../../results/pyscenic/normalised.dir/merged-all.dir/cluster-annotation_RSS.csv"    # RSS scores per regulon for celltype
+  rss_condition: "../../results/pyscenic/normalised.dir/merged-all.dir/stimulation-annotation_RSS.csv"    # RSS scores per regulon for condition or "None"
   rss_celltype_condition: "None"    # RSS scores per regulon for celltype_condition or "None"
   species: "human"    # fly, human, mouse or None
-  regulon_genes: "../pyscenic_results.dir/normalised.dir/all-samples.dir/regulons.csv"    # regulon files generatated from pipeline_pyscenic.py or "None"
-  exp_matrix: "../pyscenic_results.dir/normalised.dir/all-samples.dir/filtered-expression.csv"    # filtered-raw-expression.csv exp matrix generated in step 1 of pipeline_pyscenic.py for background for pathway analysis or "None"
+  regulon_genes: "../../results/pyscenic/normalised.dir/merged-all.dir/regulons.csv"    # regulon files generatated from pipeline_pyscenic.py or "None"
+  exp_matrix: "../../results/pyscenic/normalised.dir/merged-all.dir/filtered-expression.csv"    # filtered-raw-expression.csv exp matrix generated in step 1 of pipeline_pyscenic.py for background for pathway analysis or "None"
   go_ont_option: "BP"    # "BP", "MF", "CC" or "ALL" for all three. Default is "MF" in ClusterProfiler
   wilcoxon_celltype_top: "wilcoxon_celltype_top10.csv"    # or "None"
-  wilcoxon_condition_top: "wilcoxon_condition_reference_top10.csv"   # or "None", results from comparison to reference condition
+  wilcoxon_condition_reference_top: "wilcoxon_condition_reference_top10.csv"   # or "None", results from comparison to reference condition
+  wilcoxon_condition_pairwise_top: "wilcoxon_condition_pairwise_top10.csv"
   ks_celltype_top: "ks_celltype_top10.csv"    # or "None"
   ks_condition_top: "ks_condition_top10.csv"    # or "None"
   pvaluecutoff: 0.05    # Pathway enrichment p-value cutoff
@@ -208,7 +209,7 @@ binary_celltype_perc_heatmap <- function(cellInfo_f = params$annotation_celltype
                                          annotation_type = "celltype",
                                          plot_height = 7, plot_width = 10, units = "in",
                                          cluster_rows = T, cluster_cols = T) {
-  if(annotation_type != "None"){
+  if (annotation_type != "None"){
     cellInfo <- read.csv(cellInfo_f)
     rownames(cellInfo) <- cellInfo$cellid
     cellInfo[, 2] <- as.factor(cellInfo[, 2])
@@ -236,13 +237,14 @@ binary_celltype_perc_heatmap <- function(cellInfo_f = params$annotation_celltype
 
     save_pheatmap_pdf(
       plot_1,
-      filename = paste0(plots_directory, '/', annotation_type, '_regulon_active_perc_cells', minPerc, '_heatmap.pdf'),
+      filename = paste0(plots_directory, '/', annotation_type, 
+                        '_regulon_active_perc_cells', minPerc, '_heatmap.pdf'),
       width = plot_width, height = plot_height)
 
     saveRDS(
       plot_1,
-      file = paste0(plots_directory, '/', annotation_type, '_regulon_active_perc_cells',
-                    minPerc, '_heatmap.rds'))
+      file = paste0(plots_directory, '/', annotation_type,
+                    '_regulon_active_perc_cells', minPerc, '_heatmap.rds'))
 
     print(plot_1)
 
@@ -550,9 +552,19 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
                                   pathwaydb = "GO_term", res_f = GO_res,
                                   plot_row = 1, plot_col = 1) {
   comparecluster_df <- res_f@compareClusterResult
+  
+  if (annotation_type == "pairwise") {
+    wilcoxon_top10 <- read_csv(file = paste0(results_directory, "/", wilcoxon_f))
+    annotation_type <- "comparison"
+    wilcoxon_top10 <- wilcoxon_top10 %>% 
+      unite(comparison, test_condition:reference_condition)
+  }
 
-  if (annotation_type != "None") {
+  if (!annotation_type %in% c("None", "comparison")) {
      wilcoxon_top10 <- read_csv(file = paste0(results_directory, "/", wilcoxon_f))
+  }
+  
+  if (annotation_type != "None") {
      wilcoxon_top10 <- wilcoxon_top10 %>%
        dplyr::select(regulon, !!sym(annotation_type))
 
@@ -580,7 +592,7 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
        p1 <- p1 +
          geom_point(aes(size = Count)) +
          theme(axis.text.y = element_text(size = 7),
-               axis.text.x = element_text(size=7, angle = 45, hjust = 1)) +
+               axis.text.x = element_text(size = 7, angle = 45, hjust = 1)) +
          scale_color_viridis_c(direction = 1, alpha = 0.8) +
          xlab("") +
          ylab("") +
@@ -592,7 +604,7 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
        num_pages <- n_pages(p1)
 
        pdf(paste0(plots_directory, "/", pathwaydb, "_plot_", stat_test,
-                  "_top10", annotation_type, "_", test_type, ".pdf"),
+                  "_top10_", annotation_type, "_", test_type, ".pdf"),
            height = plot_height, width = plot_width)
        for (i in 1:num_pages) {
          print(p1 +
@@ -1024,7 +1036,7 @@ if (params$celltype_condition != "None") {
 }
 ```
 
-# Binary AUC score Heatmap
+# Binary AUC score heatmap
 
 ```{r, fig.width = 12, fig.height = 11}
 binary_auc_heatmap(annotation_col_f = params$binary_heatmap_cell_annotations,
@@ -1097,7 +1109,7 @@ if (params$celltype != "None") {
 
 ```{r}
 # annotation_type has to be "condition"
-if(params$condition != "None") {
+if (params$condition != "None") {
   num_active_regulons_annotation(cellInfo_f = params$annotation_condition,
                                  binary_mtx_f = params$binary_mtx,
                                  annotation_type = params$condition,
@@ -1168,8 +1180,21 @@ if (params$celltype != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top,
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_reference_top,
                         annotation_type = "test_condition", test_type = "reference",
+                        plot_height = 6, plot_width = 8, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "GO_term",
+                        res_f = GO_res, plot_row = 1, plot_col = 1)
+}
+```
+
+### Top 10 wilcoxon regulons by condition (pairwise)
+
+```{r, fig.height = 4, fig.width = 6}
+# annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
+if (params$condition != "None") {
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_pairwise_top,
+                        annotation_type = "pairwise", test_type = "pairwise",
                         plot_height = 6, plot_width = 8, units = "in",
                         showCategory = 7, stat_test = "wilcoxon", pathwaydb = "GO_term",
                         res_f = GO_res, plot_row = 1, plot_col = 1)
@@ -1265,8 +1290,21 @@ if (params$celltype != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top,
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_reference_top,
                         annotation_type = "test_condition", test_type = "reference",
+                        plot_height = 6, plot_width = 8, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "Reactome",
+                        res_f = Reactome_res, plot_row = 1, plot_col = 1)
+}
+```
+
+### Top 10 wilcoxon regulons by condition (pairwise)
+
+```{r, fig.height = 4, fig.width = 6}
+# annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
+if (params$condition != "None") {
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_pairwise_top,
+                        annotation_type = "pairwise", test_type = "pairwise",
                         plot_height = 6, plot_width = 8, units = "in",
                         showCategory = 7, stat_test = "wilcoxon", pathwaydb = "Reactome",
                         res_f = Reactome_res, plot_row = 1, plot_col = 1)
@@ -1364,8 +1402,22 @@ if (params$celltype != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top,
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_reference_top,
                         annotation_type = "test_condition", test_type = "reference",
+                        plot_height = 6, plot_width = 8, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon",
+                        pathwaydb = "msigdb_curated", res_f = msigdb_c2_res,
+                        plot_row = 1, plot_col = 1)
+}
+```
+
+### Top 10 wilcoxon regulons by condition (pairwise)
+
+```{r, fig.height = 4, fig.width = 6}
+# annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
+if (params$condition != "None") {
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_pairwise_top,
+                        annotation_type = "pairwise", test_type = "pairwise",
                         plot_height = 6, plot_width = 8, units = "in",
                         showCategory = 7, stat_test = "wilcoxon",
                         pathwaydb = "msigdb_curated", res_f = msigdb_c2_res,
@@ -1464,8 +1516,21 @@ if (params$celltype != "None") {
 ```{r, fig.height = 4, fig.width = 6}
 # annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
 if (params$condition != "None") {
-  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_top,
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_reference_top,
                         annotation_type = "test_condition", test_type = "reference",
+                        plot_height = 6, plot_width = 8, units = "in",
+                        showCategory = 7, stat_test = "wilcoxon", pathwaydb = "KEGG",
+                        res_f = KEGG_res, plot_row = 1, plot_col = 1)
+}
+```
+
+### Top 10 wilcoxon regulons by condition (pairwise)
+
+```{r, fig.height = 4, fig.width = 6}
+# annotation_type is the column names from wilcoxon or KS results file with celltype or condition annotation
+if (params$condition != "None") {
+  wilcoxon_pathway_plot(wilcoxon_f = params$wilcoxon_condition_pairwise_top,
+                        annotation_type = "pairwise", test_type = "pairwise",
                         plot_height = 6, plot_width = 8, units = "in",
                         showCategory = 7, stat_test = "wilcoxon", pathwaydb = "KEGG",
                         res_f = KEGG_res, plot_row = 1, plot_col = 1)
