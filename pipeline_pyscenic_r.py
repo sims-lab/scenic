@@ -126,13 +126,15 @@ def rscenic(infile, outfile):
         zscores_condition = dir + "aucell_zscores_" + PARAMS["rscenic_annotation_condition"]
         rss_condition = dir + PARAMS["rscenic_annotation_condition"].split(".")[0] + "_RSS.csv"
         zscore_filter_threshold_condition = PARAMS["rscenic_zscore_filter_threshold_condition"]
-        wilcoxon_condition_top = 'wilcoxon_condition_reference_top10.csv'
+        wilcoxon_condition_reference_top = 'wilcoxon_condition_reference_top10.csv'
+        wilcoxon_condition_pairwise_top = 'wilcoxon_condition_pairwise_top10.csv'
         ks_condition_top = 'ks_condition_top10.csv'
     else:
         zscores_condition = "None"
         rss_condition = "None"
         zscore_filter_threshold_condition = "None"
-        wilcoxon_condition_top = "None"
+        wilcoxon_condition_reference_top = "None"
+        wilcoxon_condition_pairwise_top = "None"
         ks_condition_top = "None"
 
     zscores_celltype_condition = dir + PARAMS["rscenic_zscores_celltype_condition"]
@@ -182,7 +184,8 @@ def rscenic(infile, outfile):
                                                  exp_matrix = '%(working_dir)s/%(exp_matrix)s',
                                                  go_ont_option = '%(go_ont_option)s',
                                                  wilcoxon_celltype_top = 'wilcoxon_celltype_top10.csv',
-                                                 wilcoxon_condition_top = '%(wilcoxon_condition_top)s',
+                                                 wilcoxon_condition_reference_top = '%(wilcoxon_condition_reference_top)s',
+                                                 wilcoxon_condition_pairwise_top = '%(wilcoxon_condition_pairwise_top)s',
                                                  ks_celltype_top = 'ks_celltype_top10.csv',
                                                  ks_condition_top = '%(ks_condition_top)s',
                                                  pvaluecutoff = '%(pvaluecutoff)s',
