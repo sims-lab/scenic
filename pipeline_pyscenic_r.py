@@ -56,6 +56,7 @@ def scenic_seurat(infile, outfile):
     clustering_resolution = PARAMS["rseurat_clustering_resolution"]
     stacked_vln_function = PARAMS["rseurat_stacked_vln_function"]
     reference_condition = PARAMS["rseurat_reference_condition"]
+    celltype_condition = PARAMS["rseurat_celltype_condition"]
     FDR_threshold = PARAMS["rseurat_FDR_threshold"]
 
     condition = PARAMS["rseurat_condition"]
@@ -82,6 +83,7 @@ def scenic_seurat(infile, outfile):
                                                  clustering_resolution = '%(clustering_resolution)s',
                                                  stacked_vln_function = '%(working_dir)s/%(stacked_vln_function)s',
                                                  reference_condition = '%(reference_condition)s',
+                                                 celltype_condition = '%(celltype_condition)s',
                                                  FDR_threshold = '%(FDR_threshold)s'),
                                                  output_file = '%(working_dir)s/%(outfile)s')"
                    > %(working_dir)s/%(results_directory)s/scenic_seurat.log
