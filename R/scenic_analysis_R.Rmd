@@ -237,7 +237,7 @@ binary_celltype_perc_heatmap <- function(cellInfo_f = params$annotation_celltype
 
     save_pheatmap_pdf(
       plot_1,
-      filename = paste0(plots_directory, '/', annotation_type, 
+      filename = paste0(plots_directory, '/', annotation_type,
                         '_regulon_active_perc_cells', minPerc, '_heatmap.pdf'),
       width = plot_width, height = plot_height)
 
@@ -552,18 +552,18 @@ wilcoxon_pathway_plot <- function(wilcoxon_f = params$wilcoxon_celltype_top,
                                   pathwaydb = "GO_term", res_f = GO_res,
                                   plot_row = 1, plot_col = 1) {
   comparecluster_df <- res_f@compareClusterResult
-  
+
   if (annotation_type == "pairwise") {
     wilcoxon_top10 <- read_csv(file = paste0(results_directory, "/", wilcoxon_f))
     annotation_type <- "comparison"
-    wilcoxon_top10 <- wilcoxon_top10 %>% 
+    wilcoxon_top10 <- wilcoxon_top10 %>%
       unite(comparison, test_condition:reference_condition)
   }
 
   if (!annotation_type %in% c("None", "comparison")) {
      wilcoxon_top10 <- read_csv(file = paste0(results_directory, "/", wilcoxon_f))
   }
-  
+
   if (annotation_type != "None") {
      wilcoxon_top10 <- wilcoxon_top10 %>%
        dplyr::select(regulon, !!sym(annotation_type))
@@ -1014,7 +1014,7 @@ if (params$condition != "None") {
   binary_celltype_perc_heatmap(plot_height = 4, plot_width = 6,
                                annotation_type = params$condition,
                                cellInfo_f = params$annotation_condition,
-                               minPerc = 0.60, cluster_rows = F, cluster_cols = F)
+                               minPerc = 0.40, cluster_rows = F, cluster_cols = F)
 } else {
   print("No condition information provided in the parameters")
 }

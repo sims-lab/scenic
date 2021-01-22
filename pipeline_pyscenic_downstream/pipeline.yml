@@ -1,7 +1,10 @@
 # YAML file for pipeline_pyscenic_downstream.py
 
 cluster:
-    queue: batchq
+    queue: all.q
+
+job:
+  condaenv: pyscenic
 
 datatype: raw   # can be raw or normalised
 
@@ -18,6 +21,6 @@ binarize:
     threads: 20    # max is 20
 
 rss_zscore:
-    annotation_files: data.dir/GI2792_graft_donorcells_annotation.csv
+    annotation_input: celltype-annotation.csv,stim-annotation.csv,celltypestim-annotation.csv
     tab: -t      # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
     threads: 5

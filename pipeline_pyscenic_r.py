@@ -120,7 +120,7 @@ def rscenic(infile, outfile):
 
     annotation_celltype = PARAMS["rscenic_annotation_celltype"]
     annotation_condition = PARAMS["rscenic_annotation_condition"]
-    annotation_celltype_condition = PARAMS["rscenic_annotation_celltype_condition"]
+    annotation_celltype_condition = "data.dir/" + sample + "_" + PARAMS["rscenic_annotation_celltype_condition"]
 
     zscores_celltype = dir + "aucell_zscores_" + PARAMS["rscenic_annotation_celltype"]
     rss_celltype = dir + PARAMS["rscenic_annotation_celltype"].split(".")[0] + "_RSS.csv"
@@ -178,7 +178,7 @@ def rscenic(infile, outfile):
                                                  binary_mtx = '%(working_dir)s/%(infile)s',
                                                  annotation_celltype = '%(working_dir)s/data.dir/%(sample)s_%(annotation_celltype)s',
                                                  annotation_condition = '%(working_dir)s/data.dir/%(sample)s_%(annotation_condition)s',
-                                                 annotation_celltype_condition = '%(working_dir)s/data.dir/%(annotation_celltype_condition)s',
+                                                 annotation_celltype_condition = '%(working_dir)s/%(annotation_celltype_condition)s',
                                                  binary_heatmap_cell_annotations ='%(working_dir)s/data.dir/%(binary_heatmap_cell_annotations)s',
                                                  rss_celltype = '%(working_dir)s/%(rss_celltype)s',
                                                  rss_condition = '%(working_dir)s/%(rss_condition)s',
