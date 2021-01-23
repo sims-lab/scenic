@@ -3,8 +3,7 @@
 Pipeline pySCENIC downstream
 =============================
 
-Author: Lucy Garner
-
+Authors: Lucy Garner and Devika Agarwal
 
 Overview
 ========
