@@ -407,7 +407,7 @@ for (group in top10_regulons_per_celltype) {
 dev.off()
 ```
 
-```{r Heatmap_condition, eval=F}
+```{r Heatmap_condition}
 if (params$condition != "None") {
     # Plot heatmap of AUCell z-scores showing the top 10 regulons per condition or cell type
     top10_regulons_per_condition <- bind_rows(top10_regulons_per_condition)
@@ -848,7 +848,7 @@ if(params$condition != "None" & params$celltype_condition != "None"){
   }
   wilcoxon_markers_cellsubtype_condition_pairwise <- bind_rows(wilcoxon_celltype_list)
   write_csv(wilcoxon_markers_cellsubtype_condition_pairwise,
-            file = paste0(results_directory, 
+            file = paste0(results_directory,
                           "/wilcoxon_celltype_condition_pairwise_comparison.csv"))
 
 }
@@ -1126,14 +1126,14 @@ if (params$condition != "None") {
 # Celltype-condition combination
 if (params$condition != "None") {
   if (params$celltype_condition != "None") {
-    metadata <- metadata %>% 
-      unite(col = "celltype_condition", 
-            c(!!sym(params$celltype), !!sym(params$condition)), 
+    metadata <- metadata %>%
+      unite(col = "celltype_condition",
+            c(!!sym(params$celltype), !!sym(params$condition)),
             sep = "_" )
     seurat_object$celltype_condition <- metadata$celltype_condition
-    
+
     Idents(seurat_object) <- "celltype_condition"
-    
+
     average_aucell_celltype_condition <- AverageExpression(
       seurat_object,
       assays = "scenic",
@@ -1141,37 +1141,37 @@ if (params$condition != "None") {
     average_aucell_celltype_condition <- average_aucell_celltype_condition[["scenic"]]
     saveRDS(average_aucell_celltype_condition,
             paste0(results_directory, "/average_aucell_celltype_condition.rds"))
-    
+
     if (nrow(top10_wilcoxon_cellsubtype_condition_reference) > 0) {
       top10_wilcoxon_celltype_condition_reference_average <- average_aucell_celltype_condition %>%
         filter(rownames(.) %in% top10_wilcoxon_cellsubtype_condition_reference$regulon)
-      
+
       cluster_rows <- ifelse(nrow(top10_wilcoxon_celltype_condition_reference_average) > 2,
                              TRUE, FALSE)
       pheatmap(top10_wilcoxon_celltype_condition_reference_average,
                scale = "row",
-               cluster_rows = cluster_rows, 
-               fontsize_col = 8, 
+               cluster_rows = cluster_rows,
+               fontsize_col = 8,
                treeheight_col = 10,
                filename = paste0(plots_directory,
                                  "/top10_regulons_wilcoxon_celltype_condition_reference_average_heatmap.pdf"),
                width = 8, height = 8,
                angle_col = 90)
-      
+
     } else {
       "top10_wilcoxon_cellsubtype_condition_reference is empty"
     }
-    
+
     if (nrow(top10_wilcoxon_cellsubtype_condition_pairwise) > 0) {
       top10_wilcoxon_celltype_condition_pairwise_average <- average_aucell_celltype_condition %>%
         filter(rownames(.) %in% top10_wilcoxon_cellsubtype_condition_pairwise$regulon)
-      
+
       cluster_rows <- ifelse(nrow(top10_wilcoxon_celltype_condition_pairwise_average) > 2,
                              TRUE, FALSE)
       pheatmap(top10_wilcoxon_celltype_condition_pairwise_average,
                scale = "row",
-               cluster_rows = cluster_rows, 
-               fontsize_col = 8, 
+               cluster_rows = cluster_rows,
+               fontsize_col = 8,
                treeheight_col = 10,
                filename = paste0(plots_directory,
                                  "/top10_regulons_wilcoxon_celltype_condition_pairwise_average_heatmap.pdf"),
@@ -1180,7 +1180,7 @@ if (params$condition != "None") {
     } else {
       "top10_wilcoxon_cellsubtype_condition_pairwise is empty"
     }
-    
+
   } else {
     print("celltype_condition parameter is set to FALSE")
   }
@@ -1193,7 +1193,7 @@ Idents(seurat_object) <- params$celltype
 if (nrow(top10_ks_celltype) > 0) {
   top10_ks_celltype_average <- average_aucell_celltype %>%
     filter(rownames(.) %in% top10_ks_celltype$regulon)
-  
+
   cluster_rows <- ifelse(nrow(top10_ks_celltype_average) > 2,
                          TRUE, FALSE)
   pheatmap(top10_ks_celltype_average,
@@ -1209,10 +1209,10 @@ if (nrow(top10_ks_celltype) > 0) {
 
 if (params$condition != "None" & (nrow(top10_ks_condition)) > 0) {
   Idents(seurat_object) <- params$condition
-  
+
   top10_ks_condition_average <- average_aucell_condition %>%
     filter(rownames(.) %in% top10_ks_condition$regulon)
-  
+
   cluster_rows <- ifelse(nrow(top10_ks_condition_average) > 2,
                          TRUE, FALSE)
   pheatmap(top10_ks_condition_average,
@@ -1242,85 +1242,85 @@ if (nrow(top10_wilcoxon_celltype) > 0) {
   Idents(seurat_object) <- params$celltype
   cluster.idents <- ifelse(nrow(top10_wilcoxon_celltype) > 2,
                            TRUE, FALSE)
-  p <- DotPlot(object = seurat_object,assay = "scenic", 
+  p <- DotPlot(object = seurat_object,assay = "scenic",
                features = unique(top10_wilcoxon_celltype$regulon),
-               cols = "RdYlBu", col.max = 3, col.min = -3, 
+               cols = "RdYlBu", col.max = 3, col.min = -3,
                cluster.idents = cluster.idents) +
     RotatedAxis() +
     FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-  p <- p + 
-    theme(legend.text = element_text(size = 12), 
+  p <- p +
+    theme(legend.text = element_text(size = 12),
           legend.title = element_text(size = 12))
   ggsave(filename = paste0(plots_directory, "/top10_regulons_wilcoxon_",
-                           params$celltype, "_dotplot.pdf"), 
+                           params$celltype, "_dotplot.pdf"),
          width = 8, height = 6)
-  
+
 } else {
   "top10_wilcoxon_celltype is empty"
 }
 
 # Condition
 if (params$condition != "None") {
-  
+
   if (nrow(top10_wilcoxon_condition) > 0) {
     Idents(seurat_object) <- params$condition
     cluster.idents <- ifelse(nrow(top10_wilcoxon_condition) > 2,
                              TRUE, FALSE)
-    p <- DotPlot(object = seurat_object, assay = "scenic", 
+    p <- DotPlot(object = seurat_object, assay = "scenic",
                  features = unique(top10_wilcoxon_condition$regulon),
-                 cols = "RdYlBu", col.max = 3, col.min = -3, 
-                 cluster.idents = cluster.idents) + 
-      RotatedAxis() + 
+                 cols = "RdYlBu", col.max = 3, col.min = -3,
+                 cluster.idents = cluster.idents) +
+      RotatedAxis() +
       FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-    p <- p + 
-      theme(legend.text = element_text(size = 12), 
+    p <- p +
+      theme(legend.text = element_text(size = 12),
             legend.title = element_text(size = 12))
     ggsave(filename = paste0(plots_directory,
                              "/top10_regulons_wilcoxon_condition_dotplot.pdf"),
            width = 8, height = 6)
-    
+
   } else {
     "top10_wilcoxon_condition is empty"
   }
-  
+
   if (nrow(top10_wilcoxon_condition_reference) > 0) {
     Idents(seurat_object) <- params$condition
     cluster.idents <- ifelse(nrow(top10_wilcoxon_condition_reference) > 2,
                              TRUE, FALSE)
-    p <- DotPlot(object = seurat_object,assay = "scenic", 
+    p <- DotPlot(object = seurat_object,assay = "scenic",
                  features = unique(top10_wilcoxon_condition_reference$regulon),
-                 cols = "RdYlBu", col.max = 3, col.min = -3, 
-                 cluster.idents = cluster.idents) + 
-      RotatedAxis() + 
+                 cols = "RdYlBu", col.max = 3, col.min = -3,
+                 cluster.idents = cluster.idents) +
+      RotatedAxis() +
       FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-    p <- p + 
-      theme(legend.text = element_text(size = 12), 
+    p <- p +
+      theme(legend.text = element_text(size = 12),
             legend.title = element_text(size = 12))
     ggsave(filename = paste0(plots_directory,
-                             "/top10_regulons_wilcoxon_condition_reference_dotplot.pdf"), 
+                             "/top10_regulons_wilcoxon_condition_reference_dotplot.pdf"),
            width = 8, height = 6)
-    
+
   } else {
     "top10_wilcoxon_condition_reference is empty"
   }
-  
+
   if (nrow(top10_wilcoxon_condition_pairwise) > 0) {
     Idents(seurat_object) <- params$condition
     cluster.idents <- ifelse(nrow(top10_wilcoxon_condition_pairwise) > 2,
                              TRUE, FALSE)
-    p <- DotPlot(object = seurat_object,assay = "scenic", 
+    p <- DotPlot(object = seurat_object,assay = "scenic",
                  features = unique(top10_wilcoxon_condition_pairwise$regulon),
-                 cols = "RdYlBu", col.max = 3, col.min = -3, 
+                 cols = "RdYlBu", col.max = 3, col.min = -3,
                  cluster.idents = cluster.idents) +
-      RotatedAxis() + 
+      RotatedAxis() +
       FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-    p <- p + 
-      theme(legend.text = element_text(size = 12), 
+    p <- p +
+      theme(legend.text = element_text(size = 12),
             legend.title = element_text(size = 12))
     ggsave(filename = paste0(plots_directory,
                              "/top10_regulons_wilcoxon_condition_pairwise_dotplot.pdf"),
            width = 8, height = 6)
-    
+
   } else {
     "top10_wilcoxon_condition_pairwise is empty"
   }
@@ -1328,49 +1328,49 @@ if (params$condition != "None") {
 
 # Celltype-condition combination
 if (params$condition != "None" & params$celltype_condition != "None") {
-  
+
   if (nrow(top10_wilcoxon_cellsubtype_condition_reference) > 0) {
     Idents(seurat_object) <- "celltype_condition"
     cluster.idents <- ifelse(nrow(top10_wilcoxon_cellsubtype_condition_reference) > 2,
                              TRUE, FALSE)
-    p <- DotPlot(object = seurat_object,assay = "scenic", 
+    p <- DotPlot(object = seurat_object,assay = "scenic",
                  features = unique(top10_wilcoxon_cellsubtype_condition_reference$regulon),
-                 cols = "RdYlBu", col.max = 3, col.min = -3, 
-                 cluster.idents = cluster.idents) + 
-      RotatedAxis() + 
+                 cols = "RdYlBu", col.max = 3, col.min = -3,
+                 cluster.idents = cluster.idents) +
+      RotatedAxis() +
       FontSize(x.text = 9,y.text = 10, x.title = 8, y.title = 8)
-    p <- p + 
-      theme(legend.text = element_text(size = 12), 
+    p <- p +
+      theme(legend.text = element_text(size = 12),
             legend.title = element_text(size = 12))
     ggsave(filename = paste0(plots_directory,
                              "/top10_regulons_wilcoxon_celltype_condition_reference_dotplot.pdf"),
            width = 8, height = 6)
-    
+
   } else {
     "top10_wilcoxon_cellsubtype_condition_reference is empty"
   }
-  
+
   if (nrow(top10_wilcoxon_cellsubtype_condition_pairwise) > 0) {
     Idents(seurat_object) <- "celltype_condition"
     cluster.idents <- ifelse(nrow(top10_wilcoxon_cellsubtype_condition_pairwise) > 2,
                              TRUE, FALSE)
-    p <- DotPlot(object = seurat_object,assay = "scenic", 
+    p <- DotPlot(object = seurat_object,assay = "scenic",
                  features = unique(top10_wilcoxon_cellsubtype_condition_pairwise$regulon),
-                 cols = "RdYlBu", col.max = 3, col.min = -3, 
-                 cluster.idents = cluster.idents) + 
-      RotatedAxis() + 
+                 cols = "RdYlBu", col.max = 3, col.min = -3,
+                 cluster.idents = cluster.idents) +
+      RotatedAxis() +
       FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-    p <- p + 
-      theme(legend.text = element_text(size = 12), 
+    p <- p +
+      theme(legend.text = element_text(size = 12),
             legend.title = element_text(size = 12))
     ggsave(filename = paste0(plots_directory,
                              "/top10_regulons_wilcoxon_celltype_condition_pairwise_dotplot.pdf"),
            width = 8, height = 6)
-    
+
   } else {
     "top10_wilcoxon_cellsubtype_condition_pairwise is empty"
   }
-  
+
 } else{
   "celltype_condition parameter is set to FALSE and no condition variable provided"
 }
