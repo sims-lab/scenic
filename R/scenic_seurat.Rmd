@@ -22,7 +22,7 @@ params:
     dotplot_function: "~/Documents/Pyscenic_lucy/scenic/R/seurat_dotplot.R"
     reference_condition: "sat00"
     celltype_condition: "Yes"
-    FDR_threshold: 0.05     # FDR threshold for top 10 wilcoxon heatmap
+    FDR_threshold: 0.05    # FDR threshold for top 10 wilcoxon heatmap
 ---
 
 ```{r setup, include = FALSE}
@@ -430,16 +430,24 @@ if (params$condition != "None") {
             dplyr::select(1, 2) %>%
             dplyr::rename(!!sym(params$condition) := annotation) %>%
             tibble::column_to_rownames(var = "regulon")
-    }
 
-    pdf(paste0(plots_directory, "/top10_regulons_per_", params$condition,
-               "_z-score", "_heatmap.pdf"),
-        width = 8, height = 6)
-    print(pheatmap(top10_regulons_per_condition_aucell,
-                   show_colnames = FALSE,
-                   annotation_col = annotation_col,
-                   annotation_row = annotation_row))
-    dev.off()
+        pdf(paste0(plots_directory, "/top10_regulons_per_", params$condition,
+                   "_z-score", "_heatmap.pdf"),
+            width = 8, height = 6)
+        print(pheatmap(top10_regulons_per_condition_aucell,
+                       show_colnames = FALSE,
+                       annotation_col = annotation_col,
+                       annotation_row = annotation_row))
+        dev.off()
+    } else {
+        pdf(paste0(plots_directory, "/top10_regulons_per_", params$condition,
+                   "_z-score", "_heatmap.pdf"),
+            width = 8, height = 6)
+        print(pheatmap(top10_regulons_per_condition_aucell,
+                       show_colnames = FALSE,
+                       annotation_col = annotation_col)
+        dev.off()
+    }
 }
 ```
 
@@ -780,7 +788,8 @@ if (params$condition != "None" & params$celltype_condition != "None"){
         for(iden in as.character(unique(Idents(seurat_object)))) {
             cellsubtype <- subset(x = seurat_object, idents = iden)
             Idents(cellsubtype) <- params$condition
-            test_identities <- setdiff(as.character(unique(Idents(cellsubtype))), params$reference_condition)
+            test_identities <- setdiff(as.character(unique(Idents(cellsubtype))),
+                                       params$reference_condition)
             for(cond in test_identities){
                 markers <- FindMarkers( cellsubtype,
                              slot = "scale.data",
@@ -833,19 +842,16 @@ if(params$condition != "None" & params$celltype_condition != "None"){
                                          sep = "_")]] <- markers
              }
              wilcoxon_markers_condition_pairwise <- bind_rows(wilcoxon_markers_list)
-             
+
     }
             wilcoxon_celltype_list[[iden]] <- wilcoxon_markers_condition_pairwise
   }
   wilcoxon_markers_cellsubtype_condition_pairwise <- bind_rows(wilcoxon_celltype_list)
   write_csv(wilcoxon_markers_cellsubtype_condition_pairwise,
-            file = paste0(results_directory,"/wilcoxon_celltype_condition_pairwise_comparison.csv"))
+            file = paste0(results_directory, 
+                          "/wilcoxon_celltype_condition_pairwise_comparison.csv"))
 
 }
-
-
-
-
 ```
 
 ```{r KS_test, message = FALSE, warning = FALSE}
@@ -958,8 +964,6 @@ if (params$condition != "None") {
         print("celltype_condition parameter set to None")
     }
 }
-
-
 ```
 
 ```{r Heatmap_wilcoxon}
@@ -1026,6 +1030,8 @@ if (params$condition != "None") {
 Idents(seurat_object) <- params$celltype
 
 # Calculate average AUCell score for all regulons and then filter for regulons of interest
+
+# Celltype
 average_aucell_celltype <- AverageExpression(
     seurat_object,
     assays = "scenic",
@@ -1051,6 +1057,7 @@ if (nrow(top10_wilcoxon_celltype) > 0) {
     "top10_wilcoxon_celltype is empty"
 }
 
+# Condition
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
 
@@ -1116,57 +1123,67 @@ if (params$condition != "None") {
 
 }
 
-if(params$condition != "None") {
-    if(params$celltype_condition != "None"){
-         metadata <- metadata %>% unite(col = "celltype_condition", c(!!sym(params$celltype), !!sym(params$condition)), sep = "_" )
-         seurat_object$celltype_condition <- metadata$celltype_condition
-         Idents(seurat_object) <- "celltype_condition"
-         average_aucell_celltype_condition <- AverageExpression(
-         seurat_object,
-         assays = "scenic",
-        slot = "scale.data")
-        average_aucell_celltype_condition <- average_aucell_celltype_condition[["scenic"]]
-        saveRDS(average_aucell_celltype_condition,
+# Celltype-condition combination
+if (params$condition != "None") {
+  if (params$celltype_condition != "None") {
+    metadata <- metadata %>% 
+      unite(col = "celltype_condition", 
+            c(!!sym(params$celltype), !!sym(params$condition)), 
+            sep = "_" )
+    seurat_object$celltype_condition <- metadata$celltype_condition
+    
+    Idents(seurat_object) <- "celltype_condition"
+    
+    average_aucell_celltype_condition <- AverageExpression(
+      seurat_object,
+      assays = "scenic",
+      slot = "scale.data")
+    average_aucell_celltype_condition <- average_aucell_celltype_condition[["scenic"]]
+    saveRDS(average_aucell_celltype_condition,
             paste0(results_directory, "/average_aucell_celltype_condition.rds"))
-
-        if (nrow(top10_wilcoxon_cellsubtype_condition_reference) > 0) {
-            top10_wilcoxon_celltype_condition_reference_average <- average_aucell_celltype_condition %>%
-            filter(rownames(.) %in% top10_wilcoxon_cellsubtype_condition_reference$regulon)
-
-            cluster_rows <- ifelse(nrow(top10_wilcoxon_celltype_condition_reference_average) > 2,
-                               TRUE, FALSE)
-            pheatmap(top10_wilcoxon_celltype_condition_reference_average,
-                 scale = "row",
-                 cluster_rows = cluster_rows,fontsize_col = 8,treeheight_col = 10,
-                 filename = paste0(plots_directory,
-                                   "/top10_regulons_wilcoxon_celltype_condition_reference_average_heatmap.pdf"),
-                 width = 8, height = 8,
-                 angle_col = 90)
-
+    
+    if (nrow(top10_wilcoxon_cellsubtype_condition_reference) > 0) {
+      top10_wilcoxon_celltype_condition_reference_average <- average_aucell_celltype_condition %>%
+        filter(rownames(.) %in% top10_wilcoxon_cellsubtype_condition_reference$regulon)
+      
+      cluster_rows <- ifelse(nrow(top10_wilcoxon_celltype_condition_reference_average) > 2,
+                             TRUE, FALSE)
+      pheatmap(top10_wilcoxon_celltype_condition_reference_average,
+               scale = "row",
+               cluster_rows = cluster_rows, 
+               fontsize_col = 8, 
+               treeheight_col = 10,
+               filename = paste0(plots_directory,
+                                 "/top10_regulons_wilcoxon_celltype_condition_reference_average_heatmap.pdf"),
+               width = 8, height = 8,
+               angle_col = 90)
+      
     } else {
-        "top10_wilcoxon_cellsubtype_condition_reference is empty"
+      "top10_wilcoxon_cellsubtype_condition_reference is empty"
     }
-
+    
     if (nrow(top10_wilcoxon_cellsubtype_condition_pairwise) > 0) {
-        top10_wilcoxon_celltype_condition_pairwise_average <- average_aucell_celltype_condition %>%
-            filter(rownames(.) %in% top10_wilcoxon_cellsubtype_condition_pairwise$regulon)
-
-        cluster_rows <- ifelse(nrow(top10_wilcoxon_celltype_condition_pairwise_average) > 2,
-                               TRUE, FALSE)
-        pheatmap(top10_wilcoxon_celltype_condition_pairwise_average,
-                 scale = "row",
-                 cluster_rows = cluster_rows,fontsize_col = 8,treeheight_col = 10,
-                 filename = paste0(plots_directory,
-                                   "/top10_regulons_wilcoxon_celltype_condition_pairwise_average_heatmap.pdf"),
-                 width = 8, height = 8,
-                 angle_col = 90)
+      top10_wilcoxon_celltype_condition_pairwise_average <- average_aucell_celltype_condition %>%
+        filter(rownames(.) %in% top10_wilcoxon_cellsubtype_condition_pairwise$regulon)
+      
+      cluster_rows <- ifelse(nrow(top10_wilcoxon_celltype_condition_pairwise_average) > 2,
+                             TRUE, FALSE)
+      pheatmap(top10_wilcoxon_celltype_condition_pairwise_average,
+               scale = "row",
+               cluster_rows = cluster_rows, 
+               fontsize_col = 8, 
+               treeheight_col = 10,
+               filename = paste0(plots_directory,
+                                 "/top10_regulons_wilcoxon_celltype_condition_pairwise_average_heatmap.pdf"),
+               width = 8, height = 8,
+               angle_col = 90)
     } else {
-        "top10_wilcoxon_cellsubtype_condition_pairwise is empty"
+      "top10_wilcoxon_cellsubtype_condition_pairwise is empty"
     }
-
-    } else {
-        print("celltype_condition parameter is set to FALSE")
-    }
+    
+  } else {
+    print("celltype_condition parameter is set to FALSE")
+  }
 }
 ```
 
@@ -1174,140 +1191,187 @@ if(params$condition != "None") {
 Idents(seurat_object) <- params$celltype
 
 if (nrow(top10_ks_celltype) > 0) {
-    top10_ks_celltype_average <- average_aucell_celltype %>%
-        filter(rownames(.) %in% top10_ks_celltype$regulon)
-
-    cluster_rows <- ifelse(nrow(top10_ks_celltype_average) > 2,
-                           TRUE, FALSE)
-    pheatmap(top10_ks_celltype_average,
-             scale = "row",
-             cluster_rows = cluster_rows,
-             filename = paste0(plots_directory, "/top10_regulons_ks_",
-                               params$celltype, "_average_heatmap.pdf"),
-             width = 5, height = 8,
-             fontsize = 6, angle_col = 90)
+  top10_ks_celltype_average <- average_aucell_celltype %>%
+    filter(rownames(.) %in% top10_ks_celltype$regulon)
+  
+  cluster_rows <- ifelse(nrow(top10_ks_celltype_average) > 2,
+                         TRUE, FALSE)
+  pheatmap(top10_ks_celltype_average,
+           scale = "row",
+           cluster_rows = cluster_rows,
+           filename = paste0(plots_directory, "/top10_regulons_ks_",
+                             params$celltype, "_average_heatmap.pdf"),
+           width = 5, height = 8,
+           fontsize = 6, angle_col = 90)
 } else {
-    "top10_ks_celltype is empty"
+  "top10_ks_celltype is empty"
 }
 
-
-    if( params$condition != "None" & (nrow(top10_ks_condition)) > 0) {
-    Idents(seurat_object) <- params$condition
-
-    top10_ks_condition_average <- average_aucell_condition %>%
-        filter(rownames(.) %in% top10_ks_condition$regulon)
-
-    cluster_rows <- ifelse(nrow(top10_ks_condition_average) > 2,
-                           TRUE, FALSE)
-    pheatmap(top10_ks_condition_average,
-             scale = "row",
-             cluster_rows = cluster_rows,
-             filename = paste0(plots_directory, "/top10_regulons_ks_",
-                               params$condition, "_average_heatmap.pdf"),
-             width = 5, height = 8)
+if (params$condition != "None" & (nrow(top10_ks_condition)) > 0) {
+  Idents(seurat_object) <- params$condition
+  
+  top10_ks_condition_average <- average_aucell_condition %>%
+    filter(rownames(.) %in% top10_ks_condition$regulon)
+  
+  cluster_rows <- ifelse(nrow(top10_ks_condition_average) > 2,
+                         TRUE, FALSE)
+  pheatmap(top10_ks_condition_average,
+           scale = "row",
+           cluster_rows = cluster_rows,
+           filename = paste0(plots_directory, "/top10_regulons_ks_",
+                             params$condition, "_average_heatmap.pdf"),
+           width = 5, height = 8)
 } else {
-    "No condition variable or top10_ks_condition is empty"
+  "No condition variable or top10_ks_condition is empty"
 }
 ```
 
 ```{r Dotplot_wilcoxon}
 source(params$dotplot_function)
-# plot dotplot for average aucell score in scale.data slot of the scenic assay
+
+# Plot dotplot for average AUCell score in scale.data slot of the SCENIC assay
+
+# Cell type
 if (nrow(top10_wilcoxon_celltype) > 0) {
-    top10_wilcoxon_celltype <- top10_wilcoxon_celltype %>%
+  top10_wilcoxon_celltype <- top10_wilcoxon_celltype %>%
     group_by(test_cell_type) %>%
     filter(p_val_adj < params$FDR_threshold) %>%
     arrange(desc(avg_diff)) %>%
     slice_head(n = 5) %>%
     ungroup()
-    Idents(seurat_object) <- params$celltype
-    cluster.idents <- ifelse(nrow(top10_wilcoxon_celltype) > 2,
-                               TRUE, FALSE)
-    p <- DotPlot(object = seurat_object,assay = "scenic", features = unique(top10_wilcoxon_celltype$regulon),
-            cols = "RdYlBu", col.max = 3, col.min = -3,cluster.idents = cluster.idents) + RotatedAxis() + FontSize(x.text = 9,y.text = 10,x.title = 8,y.title = 8)
-    p <- p + theme(legend.text = element_text(size=12), legend.title = element_text(size=12))
-    ggsave(filename = paste0(plots_directory, "/top10_regulons_wilcoxon_",
-                               params$celltype, "_dotplot.pdf"),width = 8,height=6)
-
+  Idents(seurat_object) <- params$celltype
+  cluster.idents <- ifelse(nrow(top10_wilcoxon_celltype) > 2,
+                           TRUE, FALSE)
+  p <- DotPlot(object = seurat_object,assay = "scenic", 
+               features = unique(top10_wilcoxon_celltype$regulon),
+               cols = "RdYlBu", col.max = 3, col.min = -3, 
+               cluster.idents = cluster.idents) +
+    RotatedAxis() +
+    FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
+  p <- p + 
+    theme(legend.text = element_text(size = 12), 
+          legend.title = element_text(size = 12))
+  ggsave(filename = paste0(plots_directory, "/top10_regulons_wilcoxon_",
+                           params$celltype, "_dotplot.pdf"), 
+         width = 8, height = 6)
+  
 } else {
-    "top10_wilcoxon_celltype is empty"
+  "top10_wilcoxon_celltype is empty"
 }
 
-
-  if (params$condition != "None"){
-
-      if(nrow(top10_wilcoxon_condition) > 0){
-        Idents(seurat_object) <- params$condition
-        cluster.idents <- ifelse(nrow(top10_wilcoxon_condition) > 2,
-                               TRUE, FALSE)
-         p <- DotPlot(object = seurat_object,assay = "scenic", features = unique(top10_wilcoxon_condition$regulon),
-            cols = "RdYlBu", col.max = 3, col.min = -3,cluster.idents = cluster.idents) + RotatedAxis() + FontSize(x.text = 9,y.text = 10,x.title = 8,y.title = 8)
-         p <- p + theme(legend.text = element_text(size=12), legend.title = element_text(size=12))
-         ggsave(filename = paste0(plots_directory, "/top10_regulons_wilcoxon_condition_dotplot.pdf"),width = 8,height=6)
-
-    } else {
-        "top10_wilcoxon_condition is empty"
-    }
-
-       if(nrow(top10_wilcoxon_condition_reference) > 0){
-        Idents(seurat_object) <- params$condition
-        cluster.idents <- ifelse(nrow(top10_wilcoxon_condition_reference) > 2,
-                               TRUE, FALSE)
-         p <- DotPlot(object = seurat_object,assay = "scenic", features = unique(top10_wilcoxon_condition_reference$regulon),
-            cols = "RdYlBu", col.max = 3, col.min = -3,cluster.idents = cluster.idents) + RotatedAxis() + FontSize(x.text = 9,y.text = 10,x.title = 8,y.title = 8)
-         p <- p + theme(legend.text = element_text(size=12), legend.title = element_text(size=12))
-         ggsave(filename = paste0(plots_directory, "/top10_regulons_wilcoxon_condition_reference_dotplot.pdf"),width = 8,height=6)
-
-    } else {
-        "top10_wilcoxon_condition_reference is empty"
-    }
-
-    if (nrow(top10_wilcoxon_condition_pairwise) > 0) {
-        Idents(seurat_object) <- params$condition
-        cluster.idents <- ifelse(nrow(top10_wilcoxon_condition_pairwise) > 2,
-                               TRUE, FALSE)
-         p <- DotPlot(object = seurat_object,assay = "scenic", features = unique(top10_wilcoxon_condition_pairwise$regulon),
-            cols = "RdYlBu", col.max = 3, col.min = -3,cluster.idents = cluster.idents) + RotatedAxis() + FontSize(x.text = 9,y.text = 10,x.title = 8,y.title = 8)
-         p <- p + theme(legend.text = element_text(size=12), legend.title = element_text(size=12))
-         ggsave(filename = paste0(plots_directory, "/top10_regulons_wilcoxon_condition_pairwise_dotplot.pdf"),width = 8,height=6)
-
-    } else {
-        "top10_wilcoxon_condition_pairwise is empty"
-    }
-
+# Condition
+if (params$condition != "None") {
+  
+  if (nrow(top10_wilcoxon_condition) > 0) {
+    Idents(seurat_object) <- params$condition
+    cluster.idents <- ifelse(nrow(top10_wilcoxon_condition) > 2,
+                             TRUE, FALSE)
+    p <- DotPlot(object = seurat_object, assay = "scenic", 
+                 features = unique(top10_wilcoxon_condition$regulon),
+                 cols = "RdYlBu", col.max = 3, col.min = -3, 
+                 cluster.idents = cluster.idents) + 
+      RotatedAxis() + 
+      FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
+    p <- p + 
+      theme(legend.text = element_text(size = 12), 
+            legend.title = element_text(size = 12))
+    ggsave(filename = paste0(plots_directory,
+                             "/top10_regulons_wilcoxon_condition_dotplot.pdf"),
+           width = 8, height = 6)
+    
+  } else {
+    "top10_wilcoxon_condition is empty"
+  }
+  
+  if (nrow(top10_wilcoxon_condition_reference) > 0) {
+    Idents(seurat_object) <- params$condition
+    cluster.idents <- ifelse(nrow(top10_wilcoxon_condition_reference) > 2,
+                             TRUE, FALSE)
+    p <- DotPlot(object = seurat_object,assay = "scenic", 
+                 features = unique(top10_wilcoxon_condition_reference$regulon),
+                 cols = "RdYlBu", col.max = 3, col.min = -3, 
+                 cluster.idents = cluster.idents) + 
+      RotatedAxis() + 
+      FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
+    p <- p + 
+      theme(legend.text = element_text(size = 12), 
+            legend.title = element_text(size = 12))
+    ggsave(filename = paste0(plots_directory,
+                             "/top10_regulons_wilcoxon_condition_reference_dotplot.pdf"), 
+           width = 8, height = 6)
+    
+  } else {
+    "top10_wilcoxon_condition_reference is empty"
+  }
+  
+  if (nrow(top10_wilcoxon_condition_pairwise) > 0) {
+    Idents(seurat_object) <- params$condition
+    cluster.idents <- ifelse(nrow(top10_wilcoxon_condition_pairwise) > 2,
+                             TRUE, FALSE)
+    p <- DotPlot(object = seurat_object,assay = "scenic", 
+                 features = unique(top10_wilcoxon_condition_pairwise$regulon),
+                 cols = "RdYlBu", col.max = 3, col.min = -3, 
+                 cluster.idents = cluster.idents) +
+      RotatedAxis() + 
+      FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
+    p <- p + 
+      theme(legend.text = element_text(size = 12), 
+            legend.title = element_text(size = 12))
+    ggsave(filename = paste0(plots_directory,
+                             "/top10_regulons_wilcoxon_condition_pairwise_dotplot.pdf"),
+           width = 8, height = 6)
+    
+  } else {
+    "top10_wilcoxon_condition_pairwise is empty"
+  }
 }
 
-
-if (params$condition != "None" & params$celltype_condition != "None"){
-
-    if(nrow(top10_wilcoxon_cellsubtype_condition_reference) > 0){
-             Idents(seurat_object) <- "celltype_condition"
-             cluster.idents <- ifelse(nrow(top10_wilcoxon_cellsubtype_condition_reference) > 2,
-                               TRUE, FALSE)
-             p <- DotPlot(object = seurat_object,assay = "scenic", features = unique(top10_wilcoxon_cellsubtype_condition_reference$regulon),
-             cols = "RdYlBu", col.max = 3, col.min = -3,cluster.idents = cluster.idents) + RotatedAxis() + FontSize(x.text = 9,y.text = 10,x.title = 8,y.title = 8)
-             p <- p + theme(legend.text = element_text(size=12), legend.title = element_text(size=12))
-             ggsave(filename = paste0(plots_directory, "/top10_regulons_wilcoxon_celltype_condition_reference_dotplot.pdf"),width = 8,height=6)
-
-    } else {
-        "top10_wilcoxon_cellsubtype_condition_reference is empty"
-    }
-
-     if (nrow(top10_wilcoxon_cellsubtype_condition_pairwise) > 0) {
-        Idents(seurat_object) <- "celltype_condition"
-        cluster.idents <- ifelse(nrow(top10_wilcoxon_cellsubtype_condition_pairwise) > 2,
-                               TRUE, FALSE)
-         p <- DotPlot(object = seurat_object,assay = "scenic", features = unique(top10_wilcoxon_cellsubtype_condition_pairwise$regulon),
-            cols = "RdYlBu", col.max = 3, col.min = -3, cluster.idents = cluster.idents) + RotatedAxis() + FontSize(x.text = 9,y.text = 10,x.title = 8,y.title = 8)
-         p <- p + theme(legend.text = element_text(size=12), legend.title = element_text(size=12))
-         ggsave(filename = paste0(plots_directory, "/top10_regulons_wilcoxon_celltype_condition_pairwise_dotplot.pdf"),width = 8,height=6)
-
-    } else {
-        "top10_wilcoxon_cellsubtype_condition_pairwise is empty"
-    }
-
+# Celltype-condition combination
+if (params$condition != "None" & params$celltype_condition != "None") {
+  
+  if (nrow(top10_wilcoxon_cellsubtype_condition_reference) > 0) {
+    Idents(seurat_object) <- "celltype_condition"
+    cluster.idents <- ifelse(nrow(top10_wilcoxon_cellsubtype_condition_reference) > 2,
+                             TRUE, FALSE)
+    p <- DotPlot(object = seurat_object,assay = "scenic", 
+                 features = unique(top10_wilcoxon_cellsubtype_condition_reference$regulon),
+                 cols = "RdYlBu", col.max = 3, col.min = -3, 
+                 cluster.idents = cluster.idents) + 
+      RotatedAxis() + 
+      FontSize(x.text = 9,y.text = 10, x.title = 8, y.title = 8)
+    p <- p + 
+      theme(legend.text = element_text(size = 12), 
+            legend.title = element_text(size = 12))
+    ggsave(filename = paste0(plots_directory,
+                             "/top10_regulons_wilcoxon_celltype_condition_reference_dotplot.pdf"),
+           width = 8, height = 6)
+    
+  } else {
+    "top10_wilcoxon_cellsubtype_condition_reference is empty"
+  }
+  
+  if (nrow(top10_wilcoxon_cellsubtype_condition_pairwise) > 0) {
+    Idents(seurat_object) <- "celltype_condition"
+    cluster.idents <- ifelse(nrow(top10_wilcoxon_cellsubtype_condition_pairwise) > 2,
+                             TRUE, FALSE)
+    p <- DotPlot(object = seurat_object,assay = "scenic", 
+                 features = unique(top10_wilcoxon_cellsubtype_condition_pairwise$regulon),
+                 cols = "RdYlBu", col.max = 3, col.min = -3, 
+                 cluster.idents = cluster.idents) + 
+      RotatedAxis() + 
+      FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
+    p <- p + 
+      theme(legend.text = element_text(size = 12), 
+            legend.title = element_text(size = 12))
+    ggsave(filename = paste0(plots_directory,
+                             "/top10_regulons_wilcoxon_celltype_condition_pairwise_dotplot.pdf"),
+           width = 8, height = 6)
+    
+  } else {
+    "top10_wilcoxon_cellsubtype_condition_pairwise is empty"
+  }
+  
 } else{
-    "celltype_condition parameter is set to FALSE and no condition variable provided"
+  "celltype_condition parameter is set to FALSE and no condition variable provided"
 }
-
 ```

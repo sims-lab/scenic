@@ -2,7 +2,9 @@
 =============================
 Pipeline pySCENIC R analysis
 =============================
-Author: Devika Agarwal
+
+Authors: Devika Agarwal and Lucy Garner
+
 Overview
 ========
 This pipeline performs pySCENIC downstream analysis steps (https://pyscenic.readthedocs.io/en/latest/index.html)
@@ -13,6 +15,7 @@ including:
 4. Wilcoxon and KS statistical test for each regulon for celltype and condition
 5. Average AUCell score heatmaps based on wilcoxon /KS test results
 6. Pathway analyses and plots for top regulons per condition/celltype for regulon target genes
+
 """
 
 from ruffus import *

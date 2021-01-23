@@ -3,8 +3,7 @@
 Pipeline pySCENIC
 =================
 
-Author: Lucy Garner
-
+Authors: Lucy Garner and Devika Agarwal
 
 Overview
 ========
@@ -13,7 +12,6 @@ including:
 1. Deriving co-expression modules
 2. Finding enriched motifs and corresponding target genes for modules
 3. Quantifying activity of gene signatures/regulons across single cells
-
 
 Usage
 =====
@@ -57,7 +55,6 @@ Dependencies
 ------------
 This pipeline requires: cgatcore, pyscenic and dependencies
 
-
 Pipeline output
 ===============
 
@@ -65,7 +62,6 @@ adjacencies.csv    # gives strength of evidence for association between TF and t
 adjacencies_wCor.csv    # gives correlation to the associations between TF and targets
 reg.csv    # modules of TFs and their target genes (not been refined to regulons)
 aucell.csv   # activity of identified gene regulatory modules within each cell
-
 
 """
 
