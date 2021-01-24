@@ -445,7 +445,7 @@ if (params$condition != "None") {
             width = 8, height = 6)
         print(pheatmap(top10_regulons_per_condition_aucell,
                        show_colnames = FALSE,
-                       annotation_col = annotation_col)
+                       annotation_col = annotation_col))
         dev.off()
     }
 }
