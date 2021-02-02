@@ -235,4 +235,3 @@ dependencies:
     - pyscenic==0.10.4
     - python-igraph==0.8.2
     - texttable==1.6.2
-prefix: /ifs/devel/devika/conda/conda_1_install/envs/pyscenic
