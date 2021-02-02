@@ -12,8 +12,8 @@ including:
 1. AUCell score based UMAP projection and clustering in seurat
 2. AUCell score based heatmaps and violin plots
 3. Binarized score projection on UMAP for each regulon
-4. Wilcoxon and KS statistical test for each regulon for celltype and condition
-5. Average AUCell score heatmaps based on wilcoxon /KS test results
+4. Wilcoxon (or chosen test) and KS statistical test for each regulon for celltype and condition
+5. Average AUCell score heatmaps based on wilcoxon (ot chosen test)/KS test results
 6. Pathway analyses and plots for top regulons per condition/celltype for regulon target genes
 
 """
@@ -59,6 +59,8 @@ def scenic_seurat(infile, outfile):
     clustering_resolution = PARAMS["rseurat_clustering_resolution"]
     stacked_vln_function = PARAMS["rseurat_stacked_vln_function"]
     dotplot_function = PARAMS["rseurat_dotplot_function"]
+    diff_exp_test = PARAMS["rseurat_diff_exp_test"]
+    latent_variables = PARAMS["rseurat_latent_variables"]
     reference_condition = PARAMS["rseurat_reference_condition"]
     celltype_condition = PARAMS["rseurat_celltype_condition"]
     FDR_threshold = PARAMS["rseurat_FDR_threshold"]
@@ -87,6 +89,8 @@ def scenic_seurat(infile, outfile):
                                                  clustering_resolution = '%(clustering_resolution)s',
                                                  stacked_vln_function = '%(working_dir)s/%(stacked_vln_function)s',
                                                  dotplot_function = '%(working_dir)s/%(dotplot_function)s',
+                                                 diff_exp_test = '%(diff_exp_test)s',
+                                                 latent_variables = '%(latent_variables)s',
                                                  reference_condition = '%(reference_condition)s',
                                                  celltype_condition = '%(celltype_condition)s',
                                                  FDR_threshold = '%(FDR_threshold)s'),
@@ -129,19 +133,20 @@ def rscenic(infile, outfile):
     rss_celltype = dir + PARAMS["rscenic_annotation_celltype"].split(".")[0] + "_RSS.csv"
     zscore_filter_threshold_celltype = PARAMS["rscenic_zscore_filter_threshold_celltype"]
 
+    celltype_top = PARAMS["rseurat_diff_exp_test"] + '_celltype_top10.csv'
     if condition != "None":
         zscores_condition = dir + "aucell_zscores_" + PARAMS["rscenic_annotation_condition"]
         rss_condition = dir + PARAMS["rscenic_annotation_condition"].split(".")[0] + "_RSS.csv"
         zscore_filter_threshold_condition = PARAMS["rscenic_zscore_filter_threshold_condition"]
-        wilcoxon_condition_reference_top = 'wilcoxon_condition_reference_top10.csv'
-        wilcoxon_condition_pairwise_top = 'wilcoxon_condition_pairwise_top10.csv'
+        condition_reference_top = PARAMS["rseurat_diff_exp_test"] + '_condition_reference_top10.csv'
+        condition_pairwise_top = PARAMS["rseurat_diff_exp_test"] + '_condition_pairwise_top10.csv'
         ks_condition_top = 'ks_condition_top10.csv'
     else:
         zscores_condition = "None"
         rss_condition = "None"
         zscore_filter_threshold_condition = "None"
-        wilcoxon_condition_reference_top = "None"
-        wilcoxon_condition_pairwise_top = "None"
+        condition_reference_top = "None"
+        condition_pairwise_top = "None"
         ks_condition_top = "None"
 
     zscores_celltype_condition = dir + PARAMS["rscenic_zscores_celltype_condition"]
@@ -190,9 +195,10 @@ def rscenic(infile, outfile):
                                                  regulon_genes = '%(working_dir)s/%(regulon_genes)s',
                                                  exp_matrix = '%(working_dir)s/%(exp_matrix)s',
                                                  go_ont_option = '%(go_ont_option)s',
-                                                 wilcoxon_celltype_top = 'wilcoxon_celltype_top10.csv',
-                                                 wilcoxon_condition_reference_top = '%(wilcoxon_condition_reference_top)s',
-                                                 wilcoxon_condition_pairwise_top = '%(wilcoxon_condition_pairwise_top)s',
+                                                 diff_exp_test = '%(rseurat_diff_exp_test)s',
+                                                 celltype_top = '%(celltype_top)s',
+                                                 condition_reference_top = '%(condition_reference_top)s',
+                                                 condition_pairwise_top = '%(condition_pairwise_top)s',
                                                  ks_celltype_top = 'ks_celltype_top10.csv',
                                                  ks_condition_top = '%(ks_condition_top)s',
                                                  pvaluecutoff = '%(pvaluecutoff)s',
