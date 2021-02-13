@@ -1278,7 +1278,7 @@ if (nrow(top10_celltype) > 0) {
   cluster.idents <- ifelse(nrow(top10_celltype) > 2,
                            TRUE, FALSE)
 
-  p <- DotPlot(object = seurat_object,assay = "scenic",
+  p <- DotPlot(object = seurat_object, assay = "scenic",
                features = unique(top10_celltype$regulon),
                cols = "RdYlBu", col.max = 3, col.min = -3,
                cluster.idents = cluster.idents) +
@@ -1329,7 +1329,7 @@ if (params$condition != "None") {
     cluster.idents <- ifelse(nrow(top10_condition_reference) > 2,
                              TRUE, FALSE)
 
-    p <- DotPlot(object = seurat_object,assay = "scenic",
+    p <- DotPlot(object = seurat_object, assay = "scenic",
                  features = unique(top10_condition_reference$regulon),
                  cols = "RdYlBu", col.max = 3, col.min = -3,
                  cluster.idents = cluster.idents) +
@@ -1352,7 +1352,7 @@ if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
     cluster.idents <- ifelse(nrow(top10_condition_pairwise) > 2,
                              TRUE, FALSE)
-    p <- DotPlot(object = seurat_object,assay = "scenic",
+    p <- DotPlot(object = seurat_object, assay = "scenic",
                  features = unique(top10_condition_pairwise$regulon),
                  cols = "RdYlBu", col.max = 3, col.min = -3,
                  cluster.idents = cluster.idents) +
@@ -1380,7 +1380,7 @@ if (params$condition != "None" & params$celltype_condition != "None") {
     cluster.idents <- ifelse(nrow(top10_cellsubtype_condition_reference) > 2,
                              TRUE, FALSE)
 
-    p <- DotPlot(object = seurat_object,assay = "scenic",
+    p <- DotPlot(object = seurat_object, assay = "scenic",
                  features = unique(top10_cellsubtype_condition_reference$regulon),
                  cols = "RdYlBu", col.max = 3, col.min = -3,
                  cluster.idents = cluster.idents) +
@@ -1404,7 +1404,7 @@ if (params$condition != "None" & params$celltype_condition != "None") {
     cluster.idents <- ifelse(nrow(top10_cellsubtype_condition_pairwise) > 2,
                              TRUE, FALSE)
 
-    p <- DotPlot(object = seurat_object,assay = "scenic",
+    p <- DotPlot(object = seurat_object, assay = "scenic",
                  features = unique(top10_cellsubtype_condition_pairwise$regulon),
                  cols = "RdYlBu", col.max = 3, col.min = -3,
                  cluster.idents = cluster.idents) +
