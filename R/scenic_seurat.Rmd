@@ -1241,7 +1241,7 @@ if (nrow(top10_ks_celltype) > 0) {
   "top10_ks_celltype is empty"
 }
 
-if (params$condition != "None" & (nrow(top10_ks_condition)) > 0) {
+if (params$condition != "None" & nrow(top10_ks_condition) > 0) {
   Idents(seurat_object) <- params$condition
 
   top10_ks_condition_average <- average_aucell_condition %>%
