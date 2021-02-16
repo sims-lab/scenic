@@ -17,7 +17,7 @@ from pyscenic.binarization import binarize
 os.environ['NUMEXPR_MAX_THREADS'] = '25'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--sample', default = 'merged-all',
+parser.add_argument('--sample', default = 'all-samples',
                     help = 'sample name')
 parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/normalised.dir/all-samples.dir/aucell.csv',
                     help = 'Output from pyscenic aucell, matrix of AUCell scores')

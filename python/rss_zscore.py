@@ -16,13 +16,13 @@ import logging
 os.environ['NUMEXPR_MAX_THREADS'] = '5'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--sample', default = 'merged-all',
+parser.add_argument('--sample', default = 'all-samples',
                     help = 'sample name')
-parser.add_argument('--exp_mtx', default = 'pyscenic_results.dir/normalised.dir/merged-all.dir/filtered-expression.csv',    # genes x cells
+parser.add_argument('--exp_mtx', default = 'pyscenic_results.dir/normalised.dir/all-samples.dir/filtered-expression.csv',    # genes x cells
                     help = 'path to h5ad-formatted hdf5 file containing AnnData object')
-parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/normalised.dir/merged-all.dir/aucell.csv',
+parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/normalised.dir/all-samples.dir/aucell.csv',
                     help = 'Output from pyscenic aucell, matrix of AUCell scores')
-parser.add_argument('--annotation_input', default = 'stimulation-annotation.csv,cluster-annotation.csv',
+parser.add_argument('--annotation_input', default = 'cluster-annotation.csv,tissue-annotation.csv',
                     help = 'files containing mapping between cell barcodes (1st column) and annotations of interest e.g. clusters (2nd column)')
 parser.add_argument('-t', action = 'store_true',
                     help = 'whether to transpose the AUCell matrix - yes if started with csv file')

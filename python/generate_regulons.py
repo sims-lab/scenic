@@ -14,9 +14,9 @@ from pyscenic.transform import df2regulons
 import logging
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--sample', default = 'merged-all',
+parser.add_argument('--sample', default = 'all-samples',
                     help = 'sample name')
-parser.add_argument('--ctx_output', default = 'pyscenic_results.dir/normalised.dir/merged-all_reg.csv',
+parser.add_argument('--ctx_output', default = 'pyscenic_results.dir/normalised.dir/all-samples.dir/reg.csv',
                     help = 'Output from pyscenic ctx, dataframe of enriched features')
 args = parser.parse_args()
 

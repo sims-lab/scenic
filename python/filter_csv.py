@@ -12,7 +12,7 @@ parser.add_argument('--umi_counts', default = 3,
                     help = 'UMI counts to use for gene filtering, genes must have at least umi_counts * min_percent * numberofcells counts to be retained')
 parser.add_argument('--min_percent', default = 0.01,
                     help = 'percentage of cells for gene filtering, genes must have at least min_percent * numberofcells counts to be retained')
-parser.add_argument('--output', default = 'filtered-normalised-expression.csv',
+parser.add_argument('--output', default = 'pyscenic_results.dir/normalised.dir/all-samples.dir/filtered-expression.csv',
                     help = 'path to output file')
 args = parser.parse_args()
 
