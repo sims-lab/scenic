@@ -20,6 +20,8 @@ rseurat:
     clustering_resolution: 0.6 # resolution of clustering to use on AUCell scores
     stacked_vln_function: R/stacked_violin.R   # location of function for generating a stacked violin
     dotplot_function: R/seurat_dotplot.R # location of modified dotplot function for the seurat script
+    diff_exp_test: wilcox    # Seurat FindMarkers - options include wilcox, negbinom, MAST
+    latent_variables: None    # latent variable (currently only one) or None
     reference_condition: sat00 # reference condition for pairwise comparisons
     celltype_condition: Yes # option to toggle on or off the celltype + condition analyses, set as "Yes" or "None" to run.
     FDR_threshold: 0.05   # FDR threshold for top 10 wilcoxon heatmap
