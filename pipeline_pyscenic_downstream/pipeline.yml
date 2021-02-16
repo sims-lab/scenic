@@ -3,8 +3,7 @@
 cluster:
     queue: all.q
 
-job:
-  condaenv: pyscenic
+conda_env: pyscenic_2
 
 datatype: raw   # can be raw or normalised
 
