@@ -96,7 +96,7 @@ def gene_filtering(infile, outfile):
                 --min_percent %(filtering_min_percent)s
                 --output %(outfile)s"""
 
-    P.run(statement, job_threads = PARAMS["filtering_threads"], job_memory = '2G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["filtering_threads"], job_memory = '2G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 # TODO: Fix script to work with AnnData objects
 # @active_if(PARAMS["filtering_input_format"] == "h5ad")
@@ -144,7 +144,7 @@ def arboreto_with_multiprocessing(infile, outfile):
                 --num_workers %(grn_threads)s
                 %(grn_other_options)s"""
 
-    P.run(statement, job_threads = PARAMS["grn_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["grn_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @transform(arboreto_with_multiprocessing, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/adjacencies.tsv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/adjacencies_wCor.csv")
 def pyscenic_add_cor(infiles, outfile):
@@ -167,7 +167,7 @@ def pyscenic_add_cor(infiles, outfile):
                 %(add_cor_other_options)s
                 -o %(outfile)s"""
 
-    P.run(statement, job_threads = PARAMS["add_cor_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["add_cor_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @transform(pyscenic_add_cor, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/adjacencies_wCor.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/reg.csv")
 def pyscenic_ctx(infiles, outfile):
@@ -201,7 +201,7 @@ def pyscenic_ctx(infiles, outfile):
                 %(database_fname_1)s
                 %(database_fname_2)s"""
 
-    P.run(statement, job_threads = PARAMS["ctx_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["ctx_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @transform(pyscenic_ctx, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/reg.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/aucell.csv")
 def pyscenic_aucell(infiles, outfile):
@@ -226,7 +226,7 @@ def pyscenic_aucell(infiles, outfile):
                 %(expression_matrix)s
                 %(reg)s"""
 
-    P.run(statement, job_threads = PARAMS["aucell_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["aucell_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @follows(pyscenic_aucell)
 def full():
