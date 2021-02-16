@@ -500,11 +500,13 @@ top10_regulons_per_group_abs <- function(aucell_matrix, metadata, group) {
   return(aucell_top)
 }
 
-try({top10_regulons_per_condition_abs <- top10_regulons_per_group_abs(
-  aucell_matrix, metadata, group = params$condition)},
-  silent = TRUE)
 top10_regulons_per_celltype_abs <- top10_regulons_per_group_abs(
   aucell_matrix, metadata, group = params$celltype)
+
+if (params$condition != "None") {
+  top10_regulons_per_condition_abs <- top10_regulons_per_group_abs(
+    aucell_matrix, metadata, group = params$condition)
+}
 ```
 
 ```{r Heatmap_condition_abs}
@@ -692,8 +694,11 @@ all_regulons_comparison <- function(comparisons, aucell_matrix_long,
 
 ```{r Chosen_test_FindMarkers}
 # Latent variables for test
-latent_variables <- ifelse(params$latent_variables != "None",
-                           params$latent_variables, NULL)
+if (params$latent_variables == "None") {
+  latent_variables <- NULL
+} else {
+  latent_variables <- params$latent_variables
+}
 
 # Cell type - one vs. all
 Idents(seurat_object) <- params$celltype
@@ -818,14 +823,13 @@ if (params$condition != "None" & params$celltype_condition != "None") {
       markers <- rownames_to_column(markers, var = "regulon")
       markers_list[[cond]] <- markers
     }
-    markers_condition_reference <- bind_rows(markers_list)
-    celltype_list[[iden]] <- markers_condition_reference
+    markers_condition_reference_temp <- bind_rows(markers_list)
+    celltype_list[[iden]] <- markers_condition_reference_temp
   }
   markers_cellsubtype_condition_reference <- bind_rows(celltype_list)
   write_csv(markers_cellsubtype_condition_reference,
             file = paste0(results_directory, "/", params$diff_exp_test,
                           "_celltype_condition_reference_comparison.csv"))
-
 }
 
 # Cell type_condition -  all pairwise (test conditions, within a cell type)
@@ -861,9 +865,9 @@ if (params$condition != "None" & params$celltype_condition != "None") {
         markers_list[[paste(test_identity, reference_identities[k],
                             sep = "_")]] <- markers
       }
-      markers_condition_pairwise <- bind_rows(markers_list)
+      markers_condition_pairwise_temp <- bind_rows(markers_list)
     }
-    celltype_list[[iden]] <- markers_condition_pairwise
+    celltype_list[[iden]] <- markers_condition_pairwise_temp
   }
   markers_cellsubtype_condition_pairwise <- bind_rows(celltype_list)
 
@@ -874,15 +878,16 @@ if (params$condition != "None" & params$celltype_condition != "None") {
 ```
 
 ```{r KS_test, message = FALSE, warning = FALSE}
-try({ks_results_condition <- all_regulons_comparison(condition_comparisons,
-                                                     aucell_matrix_long,
-                                                     params$condition,
-                                                     "KS")
-ks_results_condition$FDR <- p.adjust(ks_results_condition$pvalue,
-                                     method = "BH")
-write_csv(ks_results_condition[, c(1:4, 7, 5, 6)],
-          paste0(results_directory, "/ks_condition_comparison.csv"))},
-silent = TRUE)
+if (params$condition != "None") {
+  ks_results_condition <- all_regulons_comparison(condition_comparisons,
+                                                  aucell_matrix_long,
+                                                  params$condition,
+                                                  "KS")
+  ks_results_condition$FDR <- p.adjust(ks_results_condition$pvalue,
+                                       method = "BH")
+  write_csv(ks_results_condition[, c(1:4, 7, 5, 6)],
+            paste0(results_directory, "/ks_condition_comparison.csv"))
+}
 
 ks_results_celltype <- all_regulons_comparison(celltype_comparisons,
                                                aucell_matrix_long,
@@ -954,15 +959,17 @@ if (params$condition != "None") {
             paste0(results_directory, "/", params$diff_exp_test,
                    "_condition_pairwise_top10.csv"))
 
-  top10_ks_condition <- ks_results_condition %>%
-    group_by(test) %>%
-    filter(as.numeric(FDR) < params$FDR_threshold) %>%
-    arrange(desc(log2FC)) %>%
-    slice_head(n = 10) %>%
-    ungroup()
+  if (exists("ks_results_condition")) {
+    top10_ks_condition <- ks_results_condition %>%
+      group_by(test) %>%
+      filter(as.numeric(FDR) < params$FDR_threshold) %>%
+      arrange(desc(log2FC)) %>%
+      slice_head(n = 10) %>%
+      ungroup()
 
-  write_csv(top10_ks_condition,
-            paste0(results_directory, "/ks_condition_top10.csv"))
+    write_csv(top10_ks_condition,
+              paste0(results_directory, "/ks_condition_top10.csv"))
+  }
 
   if (params$celltype_condition != "None") {
     top10_cellsubtype_condition_reference <- markers_cellsubtype_condition_reference %>%
@@ -983,7 +990,7 @@ if (params$condition != "None") {
       slice_head(n = 10) %>%
       ungroup()
 
-    write_csv(top10_cellsubtype_condition_reference,
+    write_csv(top10_cellsubtype_condition_pairwise,
               paste0(results_directory, "/", params$diff_exp_test,
                      "_celltype_condition_pairwise_top10.csv"))
 
@@ -1186,8 +1193,8 @@ if (params$condition != "None") {
                fontsize_col = 8,
                treeheight_col = 10,
                filename = paste0(plots_directory, "/top10_regulons_",
-                               params$diff_exp_test,
-                               "_celltype_condition_reference_average_heatmap.pdf"),
+                                 params$diff_exp_test,
+                                 "_celltype_condition_reference_average_heatmap.pdf"),
                width = 8, height = 8,
                angle_col = 90)
 
@@ -1207,8 +1214,8 @@ if (params$condition != "None") {
                fontsize_col = 8,
                treeheight_col = 10,
                filename = paste0(plots_directory, "/top10_regulons_",
-                               params$diff_exp_test,
-                               "_celltype_condition_pairwise_average_heatmap.pdf"),
+                                 params$diff_exp_test,
+                                 "_celltype_condition_pairwise_average_heatmap.pdf"),
                width = 8, height = 8,
                angle_col = 90)
     } else {
@@ -1241,7 +1248,7 @@ if (nrow(top10_ks_celltype) > 0) {
   "top10_ks_celltype is empty"
 }
 
-if (params$condition != "None" & nrow(top10_ks_condition) > 0) {
+if (params$condition != "None" & exists("top10_ks_condition")) {
   Idents(seurat_object) <- params$condition
 
   top10_ks_condition_average <- average_aucell_condition %>%
@@ -1316,8 +1323,8 @@ if (params$condition != "None") {
       theme(legend.text = element_text(size = 12),
             legend.title = element_text(size = 12))
     ggsave(filename = paste0(plots_directory, "/top10_regulons_",
-                           params$diff_exp_test,
-                           "_condition_dotplot.pdf"),
+                             params$diff_exp_test,
+                             "_condition_dotplot.pdf"),
            width = 8, height = 6)
 
   } else {
