@@ -692,12 +692,8 @@ all_regulons_comparison <- function(comparisons, aucell_matrix_long,
 
 ```{r Chosen_test_FindMarkers}
 # Latent variables for test
-if (params$latent_variables == "None") {
-  latent_variables <- NULL
-} else {
-  latent_variables <- params$latent_variables
-}
-
+latent_variables <- ifelse(params$latent_variables != "None",
+                           params$latent_variables, NULL)
 
 # Cell type - one vs. all
 Idents(seurat_object) <- params$celltype
@@ -937,7 +933,7 @@ if (params$condition != "None") {
                    "_condition_top10.csv"))
 
   top10_condition_reference <- markers_condition_reference %>%
-    group_by(test_condition) %>%
+    group_by(condition) %>%
     filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
     arrange(desc(avg_diff)) %>%
     slice_head(n = 10) %>%
@@ -987,7 +983,7 @@ if (params$condition != "None") {
       slice_head(n = 10) %>%
       ungroup()
 
-    write_csv(top10_cellsubtype_condition_pairwise,
+    write_csv(top10_cellsubtype_condition_reference,
               paste0(results_directory, "/", params$diff_exp_test,
                      "_celltype_condition_pairwise_top10.csv"))
 
