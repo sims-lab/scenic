@@ -49,6 +49,7 @@ library(gtools)
 library(pheatmap)
 library(cowplot)
 library(MAST)
+options(scipen = 999)
 ```
 
 ```{r Read_in_data, message = FALSE}
@@ -495,8 +496,7 @@ top10_regulons_per_group_abs <- function(aucell_matrix, metadata, group) {
     summarise(mean_aucell_score = mean(aucell_score), .groups = "drop_last") %>%
     arrange(desc(mean_aucell_score)) %>%
     group_by(!!sym(group)) %>%
-    slice_head(n = 10) %>%
-    ungroup()
+    slice_head(n = 10)
   return(aucell_top)
 }
 
@@ -905,10 +905,9 @@ write_csv(ks_results_celltype[, c(1:4, 7, 5, 6)],
 # Using Wilcoxon (or other test) output from the FindMarkers function so there is some pre-filtering
 top10_celltype <- markers_celltype %>%
   group_by(celltype) %>%
-  filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
+  filter(p_val_adj < params$FDR_threshold) %>%
   arrange(desc(avg_diff)) %>%
-  slice_head(n = 10) %>%
-  ungroup()
+  slice_head(n = 10)
 
 write_csv(top10_celltype,
           paste0(results_directory, "/", params$diff_exp_test,
@@ -917,10 +916,9 @@ write_csv(top10_celltype,
 # The KS test has no pre-filtering
 top10_ks_celltype <- ks_results_celltype %>%
   group_by(test) %>%
-  filter(as.numeric(FDR) < params$FDR_threshold) %>%
+  filter(FDR < params$FDR_threshold) %>%
   arrange(desc(log2FC)) %>%
-  slice_head(n = 10) %>%
-  ungroup()
+  slice_head(n = 10)
 
 write_csv(top10_ks_celltype,
           paste0(results_directory, "/ks_celltype_top10.csv"))
@@ -928,10 +926,9 @@ write_csv(top10_ks_celltype,
 if (params$condition != "None") {
   top10_condition <- markers_condition %>%
     group_by(condition) %>%
-    filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
+    filter(p_val_adj < params$FDR_threshold) %>%
     arrange(desc(avg_diff)) %>%
-    slice_head(n = 10) %>%
-    ungroup()
+    slice_head(n = 10)
 
   write_csv(top10_condition,
             paste0(results_directory, "/", params$diff_exp_test,
@@ -939,10 +936,9 @@ if (params$condition != "None") {
 
   top10_condition_reference <- markers_condition_reference %>%
     group_by(condition) %>%
-    filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
+    filter(p_val_adj < params$FDR_threshold) %>%
     arrange(desc(avg_diff)) %>%
-    slice_head(n = 10) %>%
-    ungroup()
+    slice_head(n = 10)
 
   write_csv(top10_condition_reference,
             paste0(results_directory, "/", params$diff_exp_test,
@@ -950,10 +946,9 @@ if (params$condition != "None") {
 
   top10_condition_pairwise <- markers_condition_pairwise %>%
     group_by(test_condition, reference_condition) %>%
-    filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
+    filter(p_val_adj < params$FDR_threshold) %>%
     arrange(desc(avg_diff)) %>%
-    slice_head(n = 10) %>%
-    ungroup()
+    slice_head(n = 10)
 
   write_csv(top10_condition_pairwise,
             paste0(results_directory, "/", params$diff_exp_test,
@@ -962,10 +957,9 @@ if (params$condition != "None") {
   if (exists("ks_results_condition")) {
     top10_ks_condition <- ks_results_condition %>%
       group_by(test) %>%
-      filter(as.numeric(FDR) < params$FDR_threshold) %>%
+      filter(FDR < params$FDR_threshold) %>%
       arrange(desc(log2FC)) %>%
-      slice_head(n = 10) %>%
-      ungroup()
+      slice_head(n = 10)
 
     write_csv(top10_ks_condition,
               paste0(results_directory, "/ks_condition_top10.csv"))
@@ -974,10 +968,9 @@ if (params$condition != "None") {
   if (params$celltype_condition != "None") {
     top10_cellsubtype_condition_reference <- markers_cellsubtype_condition_reference %>%
       group_by(celltype, test_condition) %>%
-      filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
+      filter(p_val_adj < params$FDR_threshold) %>%
       arrange(desc(avg_diff)) %>%
-      slice_head(n = 10) %>%
-      ungroup()
+      slice_head(n = 10)
 
     write_csv(top10_cellsubtype_condition_reference,
               paste0(results_directory, "/", params$diff_exp_test,
@@ -985,10 +978,9 @@ if (params$condition != "None") {
 
     top10_cellsubtype_condition_pairwise <- markers_cellsubtype_condition_pairwise %>%
       group_by(celltype, test_condition, reference_condition) %>%
-      filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
+      filter(p_val_adj < params$FDR_threshold) %>%
       arrange(desc(avg_diff)) %>%
-      slice_head(n = 10) %>%
-      ungroup()
+      slice_head(n = 10)
 
     write_csv(top10_cellsubtype_condition_pairwise,
               paste0(results_directory, "/", params$diff_exp_test,
@@ -1276,10 +1268,9 @@ source(params$dotplot_function)
 if (nrow(top10_celltype) > 0) {
   top10_celltype <- top10_celltype %>%
     group_by(celltype) %>%
-    filter(as.numeric(p_val_adj) < params$FDR_threshold) %>%
+    filter(p_val_adj < params$FDR_threshold) %>%
     arrange(desc(avg_diff)) %>%
-    slice_head(n = 5) %>%
-    ungroup()
+    slice_head(n = 5)
 
   Idents(seurat_object) <- params$celltype
   cluster.idents <- ifelse(nrow(top10_celltype) > 2,
