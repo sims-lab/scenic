@@ -3,8 +3,7 @@
 cluster:
     queue: all.q
 
-job:
-    condaenv: pyscenic
+conda_env: pyscenic_2    
 
 filtering:
     threads: 2
