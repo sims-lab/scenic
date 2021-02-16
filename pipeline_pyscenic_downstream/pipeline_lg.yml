@@ -4,8 +4,7 @@ cluster:
     queue_manager: slurm
     queue: batch
 
-job:
-    condaenv: pyscenic
+conda_env: pyscenic_v2
 
 aucell:
     tab: -t     # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
@@ -20,6 +19,6 @@ binarize:
     threads: 20    # max is 20
 
 rss_zscore:
-    annotation_input: cluster-annotation.csv,stimulation-annotation.csv    # ending of annotation files, comma separated (no space), only one underscore at the beginning
+    annotation_input: cluster-annotation.csv,tissue-annotation.csv    # ending of annotation files, comma separated (no space), only one underscore at the beginning
     tab: -t      # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
     threads: 5

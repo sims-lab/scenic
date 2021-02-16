@@ -17,11 +17,11 @@ import logging
 os.environ['NUMEXPR_MAX_THREADS'] = '15'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--sample', default = 'merged-all',
+parser.add_argument('--sample', default = 'all-samples',
                     help = 'sample name')
-parser.add_argument('--exp_mtx', default = 'pyscenic_results.dir/normalised.dir/merged-all_filtered-expression.csv',    # genes x cells
+parser.add_argument('--exp_mtx', default = 'pyscenic_results.dir/normalised.dir/all-samples.dir/filtered-expression.csv',    # genes x cells
                     help = 'path to csv file containing filtered expression values used for pySCENIC')
-parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/normalised.dir/merged-all_aucell.csv',
+parser.add_argument('--aucell_output', default = 'pyscenic_results.dir/normalised.dir/all-samples.dir/aucell.csv',
                     help = 'output from pyscenic aucell, matrix of AUCell scores')
 parser.add_argument('-t', action = 'store_true',
                     help = "whether to transpose the AUCell matrix - yes if started with csv file")

@@ -4,8 +4,7 @@ cluster:
     queue_manager: slurm
     queue: batch
 
-job:
-    condaenv: pyscenic
+conda_env: pyscenic_v2
 
 filtering:
     threads: 6

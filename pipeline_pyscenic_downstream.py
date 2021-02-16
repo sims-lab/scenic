@@ -45,7 +45,7 @@ def aucell_heatmap(infile, outfile):
                 %(aucell_tab)s
                 """
 
-    P.run(statement, job_threads = PARAMS["aucell_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["aucell_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @transform("pyscenic_results.dir/*.dir/*.dir/reg.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/reg.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/regulons.csv")
 def generate_regulons(infile, outfile):
@@ -60,7 +60,7 @@ def generate_regulons(infile, outfile):
                 --ctx_output %(infile)s
                 """
 
-    P.run(statement, job_threads = PARAMS["regulons_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["regulons_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @transform("pyscenic_results.dir/*.dir/*.dir/aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/aucell.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/aucell_thresholds.csv")
 def regulon_binarization(infile, outfile):
@@ -87,7 +87,7 @@ def regulon_binarization(infile, outfile):
                 %(custom_aucell_thresholds)s
                 """
 
-    P.run(statement, job_threads = PARAMS["binarize_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["binarize_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @transform("pyscenic_results.dir/*.dir/*.dir/aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/aucell.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/aucell_zscores.csv")
 def rss_zscore(infile, outfile):
@@ -112,7 +112,7 @@ def rss_zscore(infile, outfile):
                 %(rss_zscore_tab)s
                 """
 
-    P.run(statement, job_threads = PARAMS["rss_zscore_threads"], job_memory = '2G', job_queue = PARAMS["cluster_queue"])
+    P.run(statement, job_threads = PARAMS["rss_zscore_threads"], job_memory = '2G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @follows(aucell_heatmap, generate_regulons, regulon_binarization, rss_zscore)
 def full():
