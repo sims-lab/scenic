@@ -211,7 +211,8 @@ DimPlot(seurat_object, reduction = "scenic_umap",
     ggtitle("Gene expression clusters") +
     theme(plot.title = element_text(hjust = 0.5))
 
-saveRDS(seurat_object, file = paste0(results_directory, "/scenic_seurat_object.rds"))
+saveRDS(seurat_object, 
+        file = paste0(results_directory, "/scenic_seurat_object.rds"))
 ```
 
 #### Plot SCENIC cluster identities on gene expression UMAP
@@ -434,22 +435,20 @@ if (params$condition != "None") {
             dplyr::rename(!!sym(params$condition) := annotation) %>%
             tibble::column_to_rownames(var = "regulon")
         
-        pdf(paste0(plots_directory, "/top10_regulons_per_", params$condition,
-                   "_z-score", "_heatmap.pdf"),
-            width = 8, height = 6)
-        print(pheatmap(top10_regulons_per_condition_aucell,
-                       show_colnames = FALSE,
-                       annotation_col = annotation_col,
-                       annotation_row = annotation_row))
-        dev.off()
+        pheatmap(top10_regulons_per_condition_aucell,
+                 show_colnames = FALSE,
+                 annotation_col = annotation_col,
+                 annotation_row = annotation_row,
+                 filename = paste0(plots_directory, "/top10_regulons_per_",
+                                   params$condition, "_z-score_heatmap.pdf"),
+                 width = 8, height = 6)
     } else {
-        pdf(paste0(plots_directory, "/top10_regulons_per_", params$condition,
-                   "_z-score", "_heatmap.pdf"),
-            width = 8, height = 6)
-        print(pheatmap(top10_regulons_per_condition_aucell,
-                       show_colnames = FALSE,
-                       annotation_col = annotation_col))
-        dev.off()
+        pheatmap(top10_regulons_per_condition_aucell,
+                 show_colnames = FALSE,
+                 annotation_col = annotation_col,
+                 filename = paste0(plots_directory, "/top10_regulons_per_",
+                                   params$condition, "_z-score_heatmap.pdf"),
+                 width = 8, height = 6)
     }
 }
 ```
@@ -474,13 +473,12 @@ annotation_col <- metadata %>%
     dplyr::select(barcode, !!sym(params$celltype)) %>%
     column_to_rownames(var = "barcode")
 
-pdf(paste0(plots_directory, "/top10_regulons_per_",
-           params$celltype, "_z-score", "_heatmap.pdf"),
-    width = 8, height = 10)
 pheatmap(top10_regulons_per_celltype_aucell,
          show_colnames = FALSE,
-         annotation_col = annotation_col)
-dev.off()
+         annotation_col = annotation_col,
+         filename = paste0(plots_directory, "/top10_regulons_per_",
+                           params$celltype, "_z-score", "_heatmap.pdf"),
+         width = 8, height = 10)
 ```
 
 #### Top 10 regulons per group based on absolute AUCell score
@@ -528,13 +526,12 @@ if (params$condition != "None") {
         dplyr::select(barcode, !!sym(params$condition)) %>%
         column_to_rownames(var = "barcode")
     
-    pdf(paste0(plots_directory, "/top10_regulons_per_",
-               params$condition, "_abs_heatmap.pdf"),
-        width = 8, height = 6)
-    print(pheatmap(top10_regulons_per_condition_abs_aucell,
-                   show_colnames = FALSE,
-                   annotation_col = annotation_col))
-    dev.off()
+    pheatmap(top10_regulons_per_condition_abs_aucell,
+             show_colnames = FALSE,
+             annotation_col = annotation_col,
+             filename = paste0(plots_directory, "/top10_regulons_per_",
+                               params$condition, "_abs_heatmap.pdf"),
+             width = 8, height = 6)
 }
 ```
 
@@ -556,13 +553,12 @@ annotation_col <- metadata %>%
     dplyr::select(barcode, !!sym(params$celltype)) %>%
     column_to_rownames(var = "barcode")
 
-pdf(paste0(plots_directory, "/top10_regulons_per_",
-           params$celltype, "_abs_heatmap.pdf"),
-    width = 8, height = 10)
 pheatmap(top10_regulons_per_celltype_abs_aucell,
          show_colnames = FALSE,
-         annotation_col = annotation_col)
-dev.off()
+         annotation_col = annotation_col,
+         filename = paste0(plots_directory, "/top10_regulons_per_",
+                           params$celltype, "_abs_heatmap.pdf"),
+         width = 8, height = 10)
 ```
 
 #### Wilcoxon (or chosen test) and KS test to identify regulons that are differentially-expressed between conditions or cell types or celltypes_conditions
