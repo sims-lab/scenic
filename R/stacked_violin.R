@@ -31,7 +31,6 @@ extract_max<- function(p){
     return(ceiling(ymax))
 }
 
-
 ## main function
 StackedVlnPlot<- function(obj, features,
                           pt.size = 0, 
