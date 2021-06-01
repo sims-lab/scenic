@@ -100,7 +100,7 @@ aucell_zscore <- t(aucell_zscore)
 aucell_matrix <- aucell_matrix %>%
     column_to_rownames(var = "Regulon")
 
-# Counts slot in scenic assay will contain AUCell scores
+# Counts slot in scenic assay will contain binary AUCell scores
 seurat_object[["scenic"]] <- CreateAssayObject(counts = binary_aucell_matrix)
 
 DefaultAssay(seurat_object) <- "scenic"
@@ -211,7 +211,7 @@ DimPlot(seurat_object, reduction = "scenic_umap",
     ggtitle("Gene expression clusters") +
     theme(plot.title = element_text(hjust = 0.5))
 
-saveRDS(seurat_object, 
+saveRDS(seurat_object,
         file = paste0(results_directory, "/scenic_seurat_object.rds"))
 ```
 
@@ -309,7 +309,7 @@ if (params$condition != "None") {
               plot_annotation(title = "Top 10 regulons condition",
                               theme = theme(plot.title = element_text(size = 14, hjust = 0.5),
                                             axis.text.x = element_text(angle = 45, hjust = 1))))
-    
+
     Idents(seurat_object) <- params$celltype
     print(StackedVlnPlot(obj = seurat_object,
                          features = top10_regulons_condition$regulon,
@@ -416,7 +416,7 @@ if (params$condition != "None") {
     # Plot heatmap of AUCell z-scores showing the top 10 regulons per condition or cell type
     top10_regulons_per_condition <- bind_rows(top10_regulons_per_condition)
     top10_regulons_per_condition_aucell <- aucell_zscore[top10_regulons_per_condition$regulon, ]
-    
+
     # Set anything above 3 to 3, and anything below -3 to -3
     top10_regulons_per_condition_aucell <- apply(top10_regulons_per_condition_aucell,
                                                  MARGIN = 1,
@@ -424,17 +424,17 @@ if (params$condition != "None") {
     top10_regulons_per_condition_aucell <- apply(top10_regulons_per_condition_aucell,
                                                  MARGIN = 1,
                                                  FUN = function(x) ifelse(x < -3, -3, x))
-    
+
     annotation_col <- metadata %>%
         dplyr::select(barcode, !!sym(params$condition)) %>%
         column_to_rownames(var = "barcode")
-    
+
     if (length(unique(top10_regulons_per_condition$regulon)) == length(top10_regulons_per_condition$regulon)) {
         annotation_row <- top10_regulons_per_condition %>%
             dplyr::select(1, 2) %>%
             dplyr::rename(!!sym(params$condition) := annotation) %>%
             tibble::column_to_rownames(var = "regulon")
-        
+
         pheatmap(top10_regulons_per_condition_aucell,
                  show_colnames = FALSE,
                  annotation_col = annotation_col,
@@ -510,22 +510,22 @@ if (params$condition != "None") {
 ```{r Heatmap_condition_abs}
 if (params$condition != "None") {
     top10_regulons_per_condition_abs_aucell <- aucell_zscore[top10_regulons_per_condition_abs$regulon, ]
-    
+
     # Set anything above 3 to 3, and anything below -3 to -3
     top10_regulons_per_condition_abs_aucell <- apply(
         top10_regulons_per_condition_abs_aucell,
         MARGIN = 1,
         FUN = function(x) ifelse(x > 3, 3, x))
-    
+
     top10_regulons_per_condition_abs_aucell <- apply(
         top10_regulons_per_condition_abs_aucell,
         MARGIN = 1,
         FUN = function(x) ifelse(x < -3, -3, x))
-    
+
     annotation_col <- metadata %>%
         dplyr::select(barcode, !!sym(params$condition)) %>%
         column_to_rownames(var = "barcode")
-    
+
     pheatmap(top10_regulons_per_condition_abs_aucell,
              show_colnames = FALSE,
              annotation_col = annotation_col,
@@ -591,7 +591,7 @@ if (params$condition != "None") {
         }
         return(comparison_dataframe)
     }
-    
+
     condition_comparisons <- condition_comparisons(
         reference = params$reference_condition,
         test = setdiff(unique(aucell_matrix_long[[params$condition]]),
@@ -619,28 +619,28 @@ single_regulon_comparison <- function(comparisons, regulon_name, group, stats_te
     # Test can be wilcoxon or KS
     results <- data.frame(regulon = NA, reference = NA, test = NA,
                           pvalue = NA, statistic = NA, log2FC = NA)
-    
+
     for (i in 1:nrow(comparisons)) {
         reference_values <- aucell_matrix_long %>%
             filter(regulon == regulon_name) %>%
             filter((!!sym(group)) %in% unlist(strsplit(comparisons[i, 1][[1]],
                                                        split = ","))) %>%
             pull(aucell_score)
-        
+
         test_values <- aucell_matrix_long %>%
             filter(regulon == regulon_name) %>%
             filter((!!sym(group)) %in% unlist(strsplit(comparisons[i, 2][[1]],
                                                        split = ","))) %>%
             pull(aucell_score)
-        
+
         log2FC <- log2(mean(test_values)/mean(reference_values))
-        
+
         if (stats_test == "wilcoxon") {
             test_results <- wilcox.test(reference_values, test_values)
         } else if (stats_test == "KS") {
             test_results <- ks.test(reference_values, test_values)
         }
-        
+
         results[i, 1] <- regulon_name
         results[i, 2] <- comparisons[i, 1]
         results[i, 3] <- comparisons[i, 2]
@@ -716,7 +716,7 @@ write_csv(markers_celltype,
 # Condition - one vs. all
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
-    
+
     markers_condition <-  FindAllMarkers(seurat_object,
                                          slot = "scale.data",
                                          only.pos = TRUE,
@@ -726,7 +726,7 @@ if (params$condition != "None") {
     markers_condition <- markers_condition %>%
         dplyr::rename(condition = cluster,
                       regulon = gene)
-    
+
     write_csv(markers_condition,
               paste0(results_directory, "/", params$diff_exp_test,
                      "_condition_onevsall_comparison.csv"))
@@ -735,7 +735,7 @@ if (params$condition != "None") {
 # Condition - test vs. reference
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
-    
+
     test_identities <- setdiff(as.character(unique(Idents(seurat_object))),
                                params$reference_condition)
     markers_list <- list()
@@ -753,7 +753,7 @@ if (params$condition != "None") {
         markers_list[[identity]] <- markers
     }
     markers_condition_reference <- bind_rows(markers_list)
-    
+
     write_csv(markers_condition_reference,
               paste0(results_directory, "/", params$diff_exp_test,
                      "_condition_reference_comparison.csv"))
@@ -762,7 +762,7 @@ if (params$condition != "None") {
 # Condition - all pairwise
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
-    
+
     identities <- as.character(unique(Idents(seurat_object)))
     markers_list <- list()
     for (i in 1:length(identities)) {
@@ -785,7 +785,7 @@ if (params$condition != "None") {
         }
     }
     markers_condition_pairwise <- bind_rows(markers_list)
-    
+
     write_csv(markers_condition_pairwise,
               paste0(results_directory, "/", params$diff_exp_test,
                      "_condition_pairwise_comparison.csv"))
@@ -795,10 +795,10 @@ if (params$condition != "None") {
 if (params$condition != "None" & params$celltype_condition != "None") {
     Idents(seurat_object) <- params$celltype
     DefaultAssay(seurat_object) <- "scenic"
-    
+
     markers_list <- list()
     celltype_list <- list()
-    
+
     for (iden in as.character(unique(Idents(seurat_object)))) {
         cellsubtype <- subset(x = seurat_object, idents = iden)
         Idents(cellsubtype) <- params$condition
@@ -833,14 +833,14 @@ if (params$condition != "None" & params$celltype_condition != "None") {
 if (params$condition != "None" & params$celltype_condition != "None") {
     Idents(seurat_object) <- params$celltype
     DefaultAssay(seurat_object) <- "scenic"
-    
+
     markers_list <- list()
     celltype_list <- list()
-    
+
     for (iden in as.character(unique(Idents(seurat_object)))) {
         cellsubtype <- subset(x = seurat_object, idents = iden)
         Idents(cellsubtype) <- params$condition
-        
+
         identities <- as.character(unique(Idents(cellsubtype)))
         for (i in 1:length(identities)) {
             test_identity <- identities[i]
@@ -866,7 +866,7 @@ if (params$condition != "None" & params$celltype_condition != "None") {
         celltype_list[[iden]] <- markers_condition_pairwise_temp
     }
     markers_cellsubtype_condition_pairwise <- bind_rows(celltype_list)
-    
+
     write_csv(markers_cellsubtype_condition_pairwise,
               file = paste0(results_directory, "/", params$diff_exp_test,
                             "_celltype_condition_pairwise_comparison.csv"))
@@ -925,63 +925,63 @@ if (params$condition != "None") {
         filter(p_val_adj < params$FDR_threshold) %>%
         arrange(desc(avg_diff)) %>%
         slice_head(n = 10)
-    
+
     write_csv(top10_condition,
               paste0(results_directory, "/", params$diff_exp_test,
                      "_condition_top10.csv"))
-    
+
     top10_condition_reference <- markers_condition_reference %>%
         group_by(condition) %>%
         filter(p_val_adj < params$FDR_threshold) %>%
         arrange(desc(avg_diff)) %>%
         slice_head(n = 10)
-    
+
     write_csv(top10_condition_reference,
               paste0(results_directory, "/", params$diff_exp_test,
                      "_condition_reference_top10.csv"))
-    
+
     top10_condition_pairwise <- markers_condition_pairwise %>%
         group_by(test_condition, reference_condition) %>%
         filter(p_val_adj < params$FDR_threshold) %>%
         arrange(desc(avg_diff)) %>%
         slice_head(n = 10)
-    
+
     write_csv(top10_condition_pairwise,
               paste0(results_directory, "/", params$diff_exp_test,
                      "_condition_pairwise_top10.csv"))
-    
+
     if (exists("ks_results_condition")) {
         top10_ks_condition <- ks_results_condition %>%
             group_by(test) %>%
             filter(FDR < params$FDR_threshold) %>%
             arrange(desc(log2FC)) %>%
             slice_head(n = 10)
-        
+
         write_csv(top10_ks_condition,
                   paste0(results_directory, "/ks_condition_top10.csv"))
     }
-    
+
     if (params$celltype_condition != "None") {
         top10_cellsubtype_condition_reference <- markers_cellsubtype_condition_reference %>%
             group_by(celltype, test_condition) %>%
             filter(p_val_adj < params$FDR_threshold) %>%
             arrange(desc(avg_diff)) %>%
             slice_head(n = 10)
-        
+
         write_csv(top10_cellsubtype_condition_reference,
                   paste0(results_directory, "/", params$diff_exp_test,
                          "_celltype_condition_reference_top10.csv"))
-        
+
         top10_cellsubtype_condition_pairwise <- markers_cellsubtype_condition_pairwise %>%
             group_by(celltype, test_condition, reference_condition) %>%
             filter(p_val_adj < params$FDR_threshold) %>%
             arrange(desc(avg_diff)) %>%
             slice_head(n = 10)
-        
+
         write_csv(top10_cellsubtype_condition_pairwise,
                   paste0(results_directory, "/", params$diff_exp_test,
                          "_celltype_condition_pairwise_top10.csv"))
-        
+
     } else {
         print("celltype_condition parameter set to None")
     }
@@ -997,20 +997,20 @@ top10_heatmap <- function(top10_regulons_table,
     if (nrow(top10_regulons_table) > 0) {
         aucell_zscore <- rownames_to_column(as.data.frame(aucell_zscore),
                                             var = "regulon")
-        
+
         top10_regulons_table_filtered <- aucell_zscore %>%
             dplyr::filter(regulon %in% top10_regulons_table$regulon) %>%
             distinct(regulon, .keep_all = TRUE) %>%
             column_to_rownames(var = "regulon")
-        
+
         # Set anything above 3 to 3, and anything below -3 to -3
         top10_regulons_table_filtered[top10_regulons_table_filtered > 3] <- 3
         top10_regulons_table_filtered[top10_regulons_table_filtered < -3] <- -3
-        
+
         annotation_col <- metadata %>%
             dplyr::select(barcode, contains(group)) %>%
             column_to_rownames(var = "barcode")
-        
+
         cluster_rows <- ifelse(nrow(top10_regulons_table_filtered) > 2,
                                TRUE, FALSE)
         pheatmap(top10_regulons_table_filtered,
@@ -1021,12 +1021,12 @@ top10_heatmap <- function(top10_regulons_table,
                                    params$diff_exp_test, "_", group,
                                    filename, "_heatmap.pdf"),
                  width = 8, height = 10)
-        
+
         print(pheatmap(top10_regulons_table_filtered,
                        show_colnames = FALSE,
                        cluster_rows = cluster_rows,
                        annotation_col = annotation_col))
-        
+
     } else {
         "top10_regulons_table is empty"
     }
@@ -1039,7 +1039,7 @@ if (params$condition != "None") {
                   aucell_zscore,
                   params$condition,
                   "_reference")
-    
+
     top10_heatmap(top10_condition_pairwise,
                   aucell_zscore,
                   params$condition,
@@ -1066,7 +1066,7 @@ saveRDS(average_aucell_celltype,
 if (nrow(top10_celltype) > 0) {
     top10_celltype_average <- average_aucell_celltype %>%
         filter(rownames(.) %in% top10_celltype$regulon)
-    
+
     cluster_rows <- ifelse(nrow(top10_celltype_average) > 2,
                            TRUE, FALSE)
     pheatmap(top10_celltype_average,
@@ -1084,7 +1084,7 @@ if (nrow(top10_celltype) > 0) {
 # Condition
 if (params$condition != "None") {
     Idents(seurat_object) <- params$condition
-    
+
     average_aucell_condition <- AverageExpression(
         seurat_object,
         assays = "scenic",
@@ -1092,7 +1092,7 @@ if (params$condition != "None") {
     average_aucell_condition <- average_aucell_condition[["scenic"]]
     saveRDS(average_aucell_condition,
             paste0(results_directory, "/average_aucell_condition.rds"))
-    
+
     if (nrow(top10_condition) > 0) {
         top10_condition_average <- average_aucell_condition %>%
             filter(rownames(.) %in% top10_condition$regulon)
@@ -1106,15 +1106,15 @@ if (params$condition != "None") {
                                    "_condition_average_heatmap.pdf"),
                  width = 5, height = 8,
                  angle_col = 90)
-        
+
     } else{
         "top10_condition is empty"
     }
-    
+
     if (nrow(top10_condition_reference) > 0) {
         top10_condition_reference_average <- average_aucell_condition %>%
             filter(rownames(.) %in% top10_condition_reference$regulon)
-        
+
         cluster_rows <- ifelse(nrow(top10_condition_reference_average) > 2,
                                TRUE, FALSE)
         pheatmap(top10_condition_reference_average,
@@ -1125,15 +1125,15 @@ if (params$condition != "None") {
                                    "_condition_reference_average_heatmap.pdf"),
                  width = 5, height = 8,
                  angle_col = 90)
-        
+
     } else {
         "top10_condition_reference is empty"
     }
-    
+
     if (nrow(top10_condition_pairwise) > 0) {
         top10_condition_pairwise_average <- average_aucell_condition %>%
             filter(rownames(.) %in% top10_condition_pairwise$regulon)
-        
+
         cluster_rows <- ifelse(nrow(top10_condition_pairwise_average) > 2,
                                TRUE, FALSE)
         pheatmap(top10_condition_pairwise_average,
@@ -1147,7 +1147,7 @@ if (params$condition != "None") {
     } else {
         "top10_condition_pairwise is empty"
     }
-    
+
 }
 
 # Celltype-condition combination
@@ -1158,9 +1158,9 @@ if (params$condition != "None") {
                   c(!!sym(params$celltype), !!sym(params$condition)),
                   sep = "_" )
         seurat_object$celltype_condition <- metadata$celltype_condition
-        
+
         Idents(seurat_object) <- "celltype_condition"
-        
+
         average_aucell_celltype_condition <- AverageExpression(
             seurat_object,
             assays = "scenic",
@@ -1168,11 +1168,11 @@ if (params$condition != "None") {
         average_aucell_celltype_condition <- average_aucell_celltype_condition[["scenic"]]
         saveRDS(average_aucell_celltype_condition,
                 paste0(results_directory, "/average_aucell_celltype_condition.rds"))
-        
+
         if (nrow(top10_cellsubtype_condition_reference) > 0) {
             top10_celltype_condition_reference_average <- average_aucell_celltype_condition %>%
                 filter(rownames(.) %in% top10_cellsubtype_condition_reference$regulon)
-            
+
             cluster_rows <- ifelse(nrow(top10_celltype_condition_reference_average) > 2,
                                    TRUE, FALSE)
             pheatmap(top10_celltype_condition_reference_average,
@@ -1185,15 +1185,15 @@ if (params$condition != "None") {
                                        "_celltype_condition_reference_average_heatmap.pdf"),
                      width = 8, height = 8,
                      angle_col = 90)
-            
+
         } else {
             "top10_cellsubtype_condition_reference is empty"
         }
-        
+
         if (nrow(top10_cellsubtype_condition_pairwise) > 0) {
             top10_celltype_condition_pairwise_average <- average_aucell_celltype_condition %>%
                 filter(rownames(.) %in% top10_cellsubtype_condition_pairwise$regulon)
-            
+
             cluster_rows <- ifelse(nrow(top10_celltype_condition_pairwise_average) > 2,
                                    TRUE, FALSE)
             pheatmap(top10_celltype_condition_pairwise_average,
@@ -1209,7 +1209,7 @@ if (params$condition != "None") {
         } else {
             "top10_cellsubtype_condition_pairwise is empty"
         }
-        
+
     } else {
         print("celltype_condition parameter is set to FALSE")
     }
@@ -1222,7 +1222,7 @@ Idents(seurat_object) <- params$celltype
 if (nrow(top10_ks_celltype) > 0) {
     top10_ks_celltype_average <- average_aucell_celltype %>%
         filter(rownames(.) %in% top10_ks_celltype$regulon)
-    
+
     cluster_rows <- ifelse(nrow(top10_ks_celltype_average) > 2,
                            TRUE, FALSE)
     pheatmap(top10_ks_celltype_average,
@@ -1238,10 +1238,10 @@ if (nrow(top10_ks_celltype) > 0) {
 
 if (params$condition != "None" & exists("top10_ks_condition")) {
     Idents(seurat_object) <- params$condition
-    
+
     top10_ks_condition_average <- average_aucell_condition %>%
         filter(rownames(.) %in% top10_ks_condition$regulon)
-    
+
     cluster_rows <- ifelse(nrow(top10_ks_condition_average) > 2,
                            TRUE, FALSE)
     pheatmap(top10_ks_condition_average,
@@ -1267,18 +1267,18 @@ if (nrow(top10_celltype) > 0) {
         filter(p_val_adj < params$FDR_threshold) %>%
         arrange(desc(avg_diff)) %>%
         slice_head(n = 5)
-    
+
     Idents(seurat_object) <- params$celltype
     cluster.idents <- ifelse(nrow(top10_celltype) > 2,
                              TRUE, FALSE)
-    
+
     p <- DotPlot(object = seurat_object, assay = "scenic",
                  features = unique(top10_celltype$regulon),
                  cols = "RdYlBu", col.max = 3, col.min = -3,
                  cluster.idents = cluster.idents) +
         RotatedAxis() +
         FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-    
+
     p <- p +
         theme(legend.text = element_text(size = 12),
               legend.title = element_text(size = 12))
@@ -1286,26 +1286,26 @@ if (nrow(top10_celltype) > 0) {
                              params$diff_exp_test, "_",
                              params$celltype, "_dotplot.pdf"),
            width = 8, height = 6)
-    
+
 } else {
     "top10_celltype is empty"
 }
 
 # Condition
 if (params$condition != "None") {
-    
+
     if (nrow(top10_condition) > 0) {
         Idents(seurat_object) <- params$condition
         cluster.idents <- ifelse(nrow(top10_condition) > 2,
                                  TRUE, FALSE)
-        
+
         p <- DotPlot(object = seurat_object, assay = "scenic",
                      features = unique(top10_condition$regulon),
                      cols = "RdYlBu", col.max = 3, col.min = -3,
                      cluster.idents = cluster.idents) +
             RotatedAxis() +
             FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-        
+
         p <- p +
             theme(legend.text = element_text(size = 12),
                   legend.title = element_text(size = 12))
@@ -1313,23 +1313,23 @@ if (params$condition != "None") {
                                  params$diff_exp_test,
                                  "_condition_dotplot.pdf"),
                width = 8, height = 6)
-        
+
     } else {
         "top10_condition is empty"
     }
-    
+
     if (nrow(top10_condition_reference) > 0) {
         Idents(seurat_object) <- params$condition
         cluster.idents <- ifelse(nrow(top10_condition_reference) > 2,
                                  TRUE, FALSE)
-        
+
         p <- DotPlot(object = seurat_object, assay = "scenic",
                      features = unique(top10_condition_reference$regulon),
                      cols = "RdYlBu", col.max = 3, col.min = -3,
                      cluster.idents = cluster.idents) +
             RotatedAxis() +
             FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-        
+
         p <- p +
             theme(legend.text = element_text(size = 12),
                   legend.title = element_text(size = 12))
@@ -1337,11 +1337,11 @@ if (params$condition != "None") {
                                  params$diff_exp_test,
                                  "_condition_reference_dotplot.pdf"),
                width = 8, height = 6)
-        
+
     } else {
         "top10_condition_reference is empty"
     }
-    
+
     if (nrow(top10_condition_pairwise) > 0) {
         Idents(seurat_object) <- params$condition
         cluster.idents <- ifelse(nrow(top10_condition_pairwise) > 2,
@@ -1352,7 +1352,7 @@ if (params$condition != "None") {
                      cluster.idents = cluster.idents) +
             RotatedAxis() +
             FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-        
+
         p <- p +
             theme(legend.text = element_text(size = 12),
                   legend.title = element_text(size = 12))
@@ -1360,7 +1360,7 @@ if (params$condition != "None") {
                                  params$diff_exp_test,
                                  "_condition_pairwise_dotplot.pdf"),
                width = 8, height = 6)
-        
+
     } else {
         "top10_condition_pairwise is empty"
     }
@@ -1368,19 +1368,19 @@ if (params$condition != "None") {
 
 # Celltype-condition combination
 if (params$condition != "None" & params$celltype_condition != "None") {
-    
+
     if (nrow(top10_cellsubtype_condition_reference) > 0) {
         Idents(seurat_object) <- "celltype_condition"
         cluster.idents <- ifelse(nrow(top10_cellsubtype_condition_reference) > 2,
                                  TRUE, FALSE)
-        
+
         p <- DotPlot(object = seurat_object, assay = "scenic",
                      features = unique(top10_cellsubtype_condition_reference$regulon),
                      cols = "RdYlBu", col.max = 3, col.min = -3,
                      cluster.idents = cluster.idents) +
             RotatedAxis() +
             FontSize(x.text = 9,y.text = 10, x.title = 8, y.title = 8)
-        
+
         p <- p +
             theme(legend.text = element_text(size = 12),
                   legend.title = element_text(size = 12))
@@ -1388,23 +1388,23 @@ if (params$condition != "None" & params$celltype_condition != "None") {
                                  params$diff_exp_test,
                                  "_celltype_condition_reference_dotplot.pdf"),
                width = 8, height = 6)
-        
+
     } else {
         "top10_cellsubtype_condition_reference is empty"
     }
-    
+
     if (nrow(top10_cellsubtype_condition_pairwise) > 0) {
         Idents(seurat_object) <- "celltype_condition"
         cluster.idents <- ifelse(nrow(top10_cellsubtype_condition_pairwise) > 2,
                                  TRUE, FALSE)
-        
+
         p <- DotPlot(object = seurat_object, assay = "scenic",
                      features = unique(top10_cellsubtype_condition_pairwise$regulon),
                      cols = "RdYlBu", col.max = 3, col.min = -3,
                      cluster.idents = cluster.idents) +
             RotatedAxis() +
             FontSize(x.text = 9, y.text = 10, x.title = 8, y.title = 8)
-        
+
         p <- p +
             theme(legend.text = element_text(size = 12),
                   legend.title = element_text(size = 12))
@@ -1412,11 +1412,11 @@ if (params$condition != "None" & params$celltype_condition != "None") {
                                  params$diff_exp_test,
                                  "_celltype_condition_pairwise_dotplot.pdf"),
                width = 8, height = 6)
-        
+
     } else {
         "top10_cellsubtype_condition_pairwise is empty"
     }
-    
+
 } else {
     "celltype_condition parameter is set to FALSE and no condition variable provided"
 }
