@@ -75,9 +75,6 @@ PARAMS = P.get_parameters(
       "../pipeline.yml",
       "pipeline.yml"])
 
-#if not os.path.exists("data.dir/" + PARAMS["datatype"] + ".dir"):
-#    os.makedirs("data.dir/" + PARAMS["datatype"] + ".dir")
-
 @active_if(PARAMS["filtering_input_format"] == "csv")
 @follows(mkdir("pyscenic_results.dir"))
 @transform("data.dir/*_*-expression.csv", regex(r"data.dir/([^_]+)_(r.*|n.*)-expression.csv"), r"pyscenic_results.dir/\2.dir/\1.dir/filtered-expression.csv")
@@ -89,7 +86,7 @@ def gene_filtering(infile, outfile):
     sample = infile.split('/')[1]
     sample = sample.split('_')[0]
 
-    PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
+    PY_PATH = os.path.join(os.getcwd(), "python")
 
     statement = """python %(PY_PATH)s/filter_csv.py
                 --input %(infile)s --umi_counts %(filtering_UMI_counts)s
@@ -136,7 +133,7 @@ def arboreto_with_multiprocessing(infile, outfile):
     else:
         grn_other_options = PARAMS["grn_other_options"]
 
-    PY_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python")
+    PY_PATH = os.path.join(os.getcwd(), "python")
 
     statement = """python %(PY_PATH)s/arboreto_with_multiprocessing.py
                 %(infile)s %(grn_tfs_list)s
