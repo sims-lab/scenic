@@ -42,7 +42,7 @@ def scenic_seurat(infile, outfile):
     sample = infile.split("/")[2]
     sample = sample.replace(".dir", "")
 
-    R_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "R")
+    R_PATH = os.path.join(os.getcwd(), "R")
     outbase = P.snip(outfile, ".html")
     dir = re.sub("aucell.csv", "", infile)
 
@@ -113,7 +113,7 @@ def rscenic(infile, outfile):
     sample = infile.split("/")[2]
     sample = sample.replace(".dir", "")
 
-    R_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "R")
+    R_PATH = os.path.join(os.getcwd(), "R")
     outbase = P.snip(outfile, ".html")
     dir = re.sub("binary_matrix.csv", "", infile)
 
