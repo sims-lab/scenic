@@ -1057,12 +1057,12 @@ average_aucell_celltype <- AverageExpression(
     seurat_object,
     assays = "scenic",
     slot = "scale.data")
-average_aucell_celltype <- average_aucell_celltype[["scenic"]]
+average_aucell_celltype <- as.data.frame(average_aucell_celltype[["scenic"]])
 saveRDS(average_aucell_celltype,
         paste0(results_directory, "/average_aucell_celltype.rds"))
 
 if (nrow(top10_celltype) > 0) {
-    top10_celltype_average <- as.data.frame(average_aucell_celltype) %>%
+    top10_celltype_average <- average_aucell_celltype %>%
         filter(rownames(.) %in% top10_celltype$regulon)
     
     cluster_rows <- ifelse(nrow(top10_celltype_average) > 2,
@@ -1087,12 +1087,12 @@ if (params$condition != "None") {
         seurat_object,
         assays = "scenic",
         slot = "scale.data")
-    average_aucell_condition <- average_aucell_condition[["scenic"]]
+    average_aucell_condition <- as.data.frame(average_aucell_condition[["scenic"]])
     saveRDS(average_aucell_condition,
             paste0(results_directory, "/average_aucell_condition.rds"))
     
     if (nrow(top10_condition) > 0) {
-        top10_condition_average <- as.data.frame(average_aucell_condition) %>%
+        top10_condition_average <- average_aucell_condition %>%
             filter(rownames(.) %in% top10_condition$regulon)
         cluster_rows <- ifelse(nrow(top10_condition_average) > 2,
                                TRUE, FALSE)
@@ -1110,7 +1110,7 @@ if (params$condition != "None") {
     }
     
     if (nrow(top10_condition_reference) > 0) {
-        top10_condition_reference_average <- as.data.frame(average_aucell_condition) %>%
+        top10_condition_reference_average <- average_aucell_condition %>%
             filter(rownames(.) %in% top10_condition_reference$regulon)
         
         cluster_rows <- ifelse(nrow(top10_condition_reference_average) > 2,
@@ -1129,7 +1129,7 @@ if (params$condition != "None") {
     }
     
     if (nrow(top10_condition_pairwise) > 0) {
-        top10_condition_pairwise_average <- as.data.frame(average_aucell_condition) %>%
+        top10_condition_pairwise_average <- average_aucell_condition %>%
             filter(rownames(.) %in% top10_condition_pairwise$regulon)
         
         cluster_rows <- ifelse(nrow(top10_condition_pairwise_average) > 2,
@@ -1163,12 +1163,12 @@ if (params$condition != "None") {
             seurat_object,
             assays = "scenic",
             slot = "scale.data")
-        average_aucell_celltype_condition <- average_aucell_celltype_condition[["scenic"]]
+        average_aucell_celltype_condition <- as.data.frame(average_aucell_celltype_condition[["scenic"]])
         saveRDS(average_aucell_celltype_condition,
                 paste0(results_directory, "/average_aucell_celltype_condition.rds"))
         
         if (nrow(top10_cellsubtype_condition_reference) > 0) {
-            top10_celltype_condition_reference_average <- as.data.frame(average_aucell_celltype_condition) %>%
+            top10_celltype_condition_reference_average <- average_aucell_celltype_condition %>%
                 filter(rownames(.) %in% top10_cellsubtype_condition_reference$regulon)
             
             cluster_rows <- ifelse(nrow(top10_celltype_condition_reference_average) > 2,
@@ -1189,7 +1189,7 @@ if (params$condition != "None") {
         }
         
         if (nrow(top10_cellsubtype_condition_pairwise) > 0) {
-            top10_celltype_condition_pairwise_average <- as.data.frame(average_aucell_celltype_condition) %>%
+            top10_celltype_condition_pairwise_average <- average_aucell_celltype_condition %>%
                 filter(rownames(.) %in% top10_cellsubtype_condition_pairwise$regulon)
             
             cluster_rows <- ifelse(nrow(top10_celltype_condition_pairwise_average) > 2,
