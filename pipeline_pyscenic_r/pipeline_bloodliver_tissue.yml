@@ -4,8 +4,8 @@ cluster:
     queue_manager: slurm
     queue: batch
 
-conda_env: renv
-working_dir: /t1-data/user/lgarner/Analysis/10x/201205_Blood_and_liver_MAIT/Gene_expression/pyscenic/210212_pyscenic
+conda_env: pyscenic_r
+working_dir: /stopgap/klenermanlab/lucy/analysis/10x_bloodandliver/gene_expression/pyscenic/210629_all_samples/
 binary_matrix: binary_matrix.csv
 aucell_scores: aucell.csv
 aucell_zscores: aucell_zscores.csv
@@ -30,7 +30,7 @@ rseurat:
 
 rscenic:
     num_workers: 15    # number of cores
-    celltype: SCT_snn_res.0.3    # column name for celltype annotation in files or "None"
+    celltype: SCT_snn_res.0.5    # column name for celltype annotation in files or "None"
     condition: tissue    # column name for condition annotation in files or "None"
     condition_exclusion: [blood,liver]    # names of samples for which you don't want to do condition comparisons or "None" if you want to do for all
     celltype_condition: None    # column name for celltype_condition columns in files or "None"
