@@ -5,7 +5,7 @@ cluster:
     queue: batch
 
 conda_env: pyscenic_r
-working_dir: /stopgap/klenermanlab/lucy/analysis/10x_bloodandliver/gene_expression/pyscenic/210629_all_samples/
+working_dir: /stopgap/klenermanlab/lucy/analysis/10x_bloodandliver/gene_expression/pyscenic/210629_all_samples
 binary_matrix: binary_matrix.csv
 aucell_scores: aucell.csv
 aucell_zscores: aucell_zscores.csv
