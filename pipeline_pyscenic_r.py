@@ -30,7 +30,9 @@ PARAMS = P.get_parameters(
       "pipeline.yml"])
 
 @follows(mkdir("reports.dir"))
-@transform("pyscenic_results.dir/*.dir/*.dir/aucell.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/aucell.csv"), r"reports.dir/\1.dir/\2.dir/scenic_seurat.html")
+@transform("pyscenic_results.dir/*.dir/*.dir/aucell.csv",
+           regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/aucell.csv"),
+           r"reports.dir/\1.dir/\2.dir/scenic_seurat.html")
 def scenic_seurat(infile, outfile):
     ''' Seurat based analyses for scenic results'''
 
@@ -98,10 +100,13 @@ def scenic_seurat(infile, outfile):
                    > %(working_dir)s/%(results_directory)s/scenic_seurat.log
                    2> %(working_dir)s/%(results_directory)s/scenic_seurat.err"""
 
-    P.run(statement, job_threads = PARAMS["rseurat_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["rseurat_threads"], job_memory = '10G',
+          job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @follows(scenic_seurat)
-@transform("pyscenic_results.dir/*.dir/*.dir/binary_matrix.csv", regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/binary_matrix.csv"), r"reports.dir/\1.dir/\2.dir/scenic_analysis_R.html")
+@transform("pyscenic_results.dir/*.dir/*.dir/binary_matrix.csv",
+           regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/binary_matrix.csv"),
+           r"reports.dir/\1.dir/\2.dir/scenic_analysis_R.html")
 def rscenic(infile, outfile):
     ''' R based analyses for scenic results'''
 
@@ -209,7 +214,8 @@ def rscenic(infile, outfile):
                    > %(working_dir)s/%(results_directory)s/scenic_analysis_R.log
                    2> %(working_dir)s/%(results_directory)s/scenic_analysis_R.err"""
 
-    P.run(statement, job_threads = PARAMS["rscenic_num_workers"], job_memory = '15G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["rscenic_num_workers"], job_memory = '15G',
+          job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @follows(scenic_seurat, rscenic)
 def full():

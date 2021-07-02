@@ -77,7 +77,9 @@ PARAMS = P.get_parameters(
 
 @active_if(PARAMS["filtering_input_format"] == "csv")
 @follows(mkdir("pyscenic_results.dir"))
-@transform("data.dir/*_*-expression.csv", regex(r"data.dir/([^_]+)_(r.*|n.*)-expression.csv"), r"pyscenic_results.dir/\2.dir/\1.dir/filtered-expression.csv")
+@transform("data.dir/*_*-expression.csv",
+           regex(r"data.dir/([^_]+)_(r.*|n.*)-expression.csv"),
+           r"pyscenic_results.dir/\2.dir/\1.dir/filtered-expression.csv")
 def gene_filtering(infile, outfile):
     '''
     Filtering of the input raw UMI expression matrix to remove genes expressed in few cells
@@ -93,7 +95,8 @@ def gene_filtering(infile, outfile):
                 --min_percent %(filtering_min_percent)s
                 --output %(outfile)s"""
 
-    P.run(statement, job_threads = PARAMS["filtering_threads"], job_memory = '2G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["filtering_threads"], job_memory = '2G',
+          job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 # TODO: Fix script to work with AnnData objects
 # @active_if(PARAMS["filtering_input_format"] == "h5ad")
@@ -121,7 +124,9 @@ def gene_filtering(infile, outfile):
 #     P.run(statement, job_threads = PARAMS["filtering_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"])
 
 # @transform([gene_filtering, extract_anndata], regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+)_filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2_adjacencies.tsv")
-@transform(gene_filtering, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/adjacencies.tsv")
+@transform(gene_filtering,
+           regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/filtered-expression.csv"),
+           r"pyscenic_results.dir/\1.dir/\2.dir/adjacencies.tsv")
 def arboreto_with_multiprocessing(infile, outfile):
     '''
     Gene regulatory network inference
@@ -141,9 +146,13 @@ def arboreto_with_multiprocessing(infile, outfile):
                 --num_workers %(grn_threads)s
                 %(grn_other_options)s"""
 
-    P.run(statement, job_threads = PARAMS["grn_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["grn_threads"], job_memory = '10G',
+          job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
-@transform(arboreto_with_multiprocessing, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/adjacencies.tsv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/adjacencies_wCor.csv")
+@transform(arboreto_with_multiprocessing,
+           regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/adjacencies.tsv"),
+           add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"),
+           r"pyscenic_results.dir/\1.dir/\2.dir/adjacencies_wCor.csv")
 def pyscenic_add_cor(infiles, outfile):
     '''
     Add Pearson correlations based on TF-gene expression to the network adjacencies output from the
@@ -164,9 +173,13 @@ def pyscenic_add_cor(infiles, outfile):
                 %(add_cor_other_options)s
                 -o %(outfile)s"""
 
-    P.run(statement, job_threads = PARAMS["add_cor_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["add_cor_threads"], job_memory = '10G',
+          job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
-@transform(pyscenic_add_cor, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/adjacencies_wCor.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/reg.csv")
+@transform(pyscenic_add_cor,
+           regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/adjacencies_wCor.csv"),
+           add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"),
+           r"pyscenic_results.dir/\1.dir/\2.dir/reg.csv")
 def pyscenic_ctx(infiles, outfile):
     '''
     Regulons are derived from adjacencies
@@ -198,9 +211,13 @@ def pyscenic_ctx(infiles, outfile):
                 %(database_fname_1)s
                 %(database_fname_2)s"""
 
-    P.run(statement, job_threads = PARAMS["ctx_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["ctx_threads"], job_memory = '10G',
+          job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
-@transform(pyscenic_ctx, regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/reg.csv"), add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"), r"pyscenic_results.dir/\1.dir/\2.dir/aucell.csv")
+@transform(pyscenic_ctx,
+           regex(r"pyscenic_results.dir/(r.*|n.*).dir/([^_]+).dir/reg.csv"),
+           add_inputs(r"pyscenic_results.dir/\1.dir/\2.dir/filtered-expression.csv"),
+           r"pyscenic_results.dir/\1.dir/\2.dir/aucell.csv")
 def pyscenic_aucell(infiles, outfile):
     '''
     Characterise cells by enrichment of previously discovered regulons
@@ -223,7 +240,8 @@ def pyscenic_aucell(infiles, outfile):
                 %(expression_matrix)s
                 %(reg)s"""
 
-    P.run(statement, job_threads = PARAMS["aucell_threads"], job_memory = '10G', job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
+    P.run(statement, job_threads = PARAMS["aucell_threads"], job_memory = '10G',
+          job_queue = PARAMS["cluster_queue"], job_condaenv = PARAMS["conda_env"])
 
 @follows(pyscenic_aucell)
 def full():
