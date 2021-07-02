@@ -4,7 +4,7 @@ cluster:
     queue_manager: slurm
     queue: batch
 
-conda_env: pyscenic_v2
+conda_env: pyscenic_python
 
 aucell:
     tab: -t     # include -t if gene expression matrix is csv file (genes as rows, cells as columns)
