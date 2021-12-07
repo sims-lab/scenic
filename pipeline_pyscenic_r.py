@@ -192,7 +192,7 @@ def rscenic(infile, outfile):
                                                  annotation_celltype = '%(working_dir)s/data.dir/%(sample)s_%(annotation_celltype)s',
                                                  annotation_condition = '%(working_dir)s/data.dir/%(sample)s_%(annotation_condition)s',
                                                  annotation_celltype_condition = '%(working_dir)s/%(annotation_celltype_condition)s',
-                                                 binary_heatmap_cell_annotations ='%(working_dir)s/data.dir/%(binary_heatmap_cell_annotations)s',
+                                                 binary_heatmap_cell_annotations = '%(working_dir)s/data.dir/%(binary_heatmap_cell_annotations)s',
                                                  rss_celltype = '%(working_dir)s/%(rss_celltype)s',
                                                  rss_condition = '%(working_dir)s/%(rss_condition)s',
                                                  rss_celltype_condition = '%(working_dir)s/%(rss_celltype_condition)s',
