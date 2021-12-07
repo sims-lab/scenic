@@ -179,7 +179,7 @@ def rscenic(infile, outfile):
                                                  datatype = '%(datatype)s',
                                                  results_directory = '%(working_dir)s/%(results_directory)s',
                                                  plots_directory = '%(working_dir)s/%(plots_directory)s',
-                                                 celltype  = '%(celltype)s',
+                                                 celltype = '%(celltype)s',
                                                  condition = '%(condition)s',
                                                  celltype_condition = '%(celltype_condition)s',
                                                  zscores_celltype = '%(working_dir)s/%(zscores_celltype)s',
